@@ -1,0 +1,121 @@
+<title>Memory Anatomy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #F5F2EC; --panel: #FCFAF5; --ink: #241F17; --soft: #574F40; --faint: #8A8171; --line: #DED6C6;
+    --accent: #7A4E24;          /* coffee brown — memory chapter identity */
+    --accent-soft: #ECE0CF;
+    --stm: #2E6B4F; --stm-soft: #DCEBE1;      /* green — short-term (this conversation) */
+    --ltm: #8A5A1E; --ltm-soft: #F1E3CC;      /* amber — long-term (this customer) */
+    --code-bg: #221C13; --code-ink: #E9E2D2; --code-key: #D0A56C;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #151109; --panel: #201A11; --ink: #EBE4D4; --soft: #B0A794; --faint: #857C6A; --line: #322A1B;
+      --accent: #D6A16A; --accent-soft: #33251400;
+      --accent-soft: #2E2214; --stm: #6FBE92; --stm-soft: #1C2E24; --ltm: #D6A863; --ltm-soft: #2E2616;
+      --code-bg: #0F0C07; --code-ink: #E0D9C8; --code-key: #DBAD74;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #151109; --panel: #201A11; --ink: #EBE4D4; --soft: #B0A794; --faint: #857C6A; --line: #322A1B;
+    --accent: #D6A16A; --accent-soft: #2E2214; --stm: #6FBE92; --stm-soft: #1C2E24; --ltm: #D6A863; --ltm-soft: #2E2616;
+    --code-bg: #0F0C07; --code-ink: #E0D9C8; --code-key: #DBAD74;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: "IBM Plex Sans", system-ui, sans-serif; line-height: 1.6; font-size: 16px; }
+  .wrap { max-width: 940px; margin: 0 auto; padding: 56px 24px 80px; }
+  .eyebrow { font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+  h1 { font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: clamp(30px, 5vw, 44px); line-height: 1.08; letter-spacing: -.01em; margin: 8px 0 10px; text-wrap: balance; }
+  .lede { color: var(--soft); font-size: 18px; max-width: 660px; margin: 0 0 8px; }
+  h2 { font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 24px; margin: 56px 0 4px; letter-spacing: -.01em; }
+  .sub { color: var(--faint); font-size: 14px; margin: 0 0 20px; }
+  .sub code, .lede code { font-family: "IBM Plex Mono", monospace; font-size: .85em; background: var(--accent-soft); padding: 1px 6px; border-radius: 3px; }
+  figure { margin: 0; } figure svg { display: block; width: 100%; height: auto; }
+  figcaption { color: var(--faint); font-size: 13px; margin-top: 12px; text-align: center; font-style: italic; }
+  .scroll { overflow-x: auto; }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 18px 0 0; font-size: 13.5px; color: var(--soft); }
+  .legend span { display: inline-flex; align-items: center; gap: 8px; }
+  .sw { width: 14px; height: 14px; border-radius: 3px; flex: none; border: 1px solid rgba(0,0,0,.15); }
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">Chapter 4 · Memory</div>
+  <h1>The tape and the notes</h1>
+  <p class="lede">Two kinds of memory. <strong>Short-term</strong> remembers <em>this conversation</em>. <strong>Long-term</strong> remembers <em>this customer</em> — so a brand-new conversation still knows their usual. Here's the Barista.</p>
+
+  <h2>Two tiers, two questions</h2>
+  <p class="sub">Same customer, but the two tiers answer different questions.</p>
+  <div class="scroll"><figure>
+    <svg viewBox="0 0 900 300" role="img" aria-label="Short-term memory keeps the raw transcript of one conversation thread, answering what did we say in THIS chat. Long-term memory distills durable preferences per customer, answering what do I know about THIS customer, and is retrieved in a brand new conversation.">
+      <!-- STM -->
+      <rect x="20" y="40" width="410" height="230" rx="8" fill="var(--stm-soft)" stroke="var(--stm)"/>
+      <text x="40" y="68" font-family="IBM Plex Mono, monospace" font-size="12" font-weight="600" letter-spacing=".05em" fill="var(--stm)">SHORT-TERM · the tape</text>
+      <text x="40" y="92" font-family="IBM Plex Sans" font-size="13.5" fill="var(--ink)">The raw transcript of ONE conversation.</text>
+      <text x="40" y="112" font-family="IBM Plex Sans" font-size="13.5" fill="var(--soft)">Keyed by thread. Perfect replay.</text>
+      <rect x="40" y="128" width="370" height="82" rx="6" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="54" y="150" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--soft)">sam: "large oat-milk latte, extra hot"</text>
+      <text x="54" y="170" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--soft)">barista: "coming right up!"</text>
+      <text x="54" y="190" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--soft)">sam: "what did I just order?"</text>
+      <text x="40" y="234" font-family="IBM Plex Sans" font-size="12.5" fill="var(--stm)">Answers: "what did we say in THIS chat?"</text>
+      <text x="40" y="254" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--faint)">LangGraph checkpointer → AgentCore Memory</text>
+      <!-- LTM -->
+      <rect x="470" y="40" width="410" height="230" rx="8" fill="var(--ltm-soft)" stroke="var(--ltm)"/>
+      <text x="490" y="68" font-family="IBM Plex Mono, monospace" font-size="12" font-weight="600" letter-spacing=".05em" fill="var(--ltm)">LONG-TERM · the notes</text>
+      <text x="490" y="92" font-family="IBM Plex Sans" font-size="13.5" fill="var(--ink)">Distilled facts about the CUSTOMER.</text>
+      <text x="490" y="112" font-family="IBM Plex Sans" font-size="13.5" fill="var(--soft)">Keyed by customer. Survives every chat.</text>
+      <rect x="490" y="128" width="370" height="82" rx="6" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="504" y="154" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--faint)">/customers/sam</text>
+      <text x="504" y="178" font-family="IBM Plex Sans" font-size="12.5" fill="var(--ink)">"Prefers large oat-milk lattes,</text>
+      <text x="504" y="196" font-family="IBM Plex Sans" font-size="12.5" fill="var(--ink)"> served extra hot."</text>
+      <text x="490" y="234" font-family="IBM Plex Sans" font-size="12.5" fill="var(--ltm)">Answers: "what do I know about THIS customer?"</text>
+      <text x="490" y="254" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--faint)">user_preference strategy · auto-distilled</text>
+    </svg>
+    <figcaption>Short-term is replayed verbatim within a thread; long-term is distilled once and retrieved by relevance in any future conversation.</figcaption>
+  </figure></div>
+  <div class="legend">
+    <span><span class="sw" style="background:var(--stm-soft);border-color:var(--stm)"></span> Short-term (this conversation)</span>
+    <span><span class="sw" style="background:var(--ltm-soft);border-color:var(--ltm)"></span> Long-term (this customer)</span>
+  </div>
+
+  <h2>How the notes get written — and read</h2>
+  <p class="sub">Extraction runs on its own, in the background. Retrieval happens before the next reply.</p>
+  <div class="scroll"><figure>
+    <svg viewBox="0 0 900 250" role="img" aria-label="Each exchange is written as a conversational event. A background user-preference strategy distills it into a durable note filed under the customer. On a later conversation, the agent retrieves that note and injects it before answering, so it honors the usual.">
+      <defs><marker id="m1" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto"><polygon points="0,0 9,4 0,8" fill="currentColor"/></marker>
+        <marker id="m2" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto"><polygon points="0,0 9,4 0,8" fill="var(--ltm)"/></marker></defs>
+      <!-- conversation 1 -->
+      <rect x="18" y="40" width="150" height="54" rx="7" fill="var(--stm-soft)" stroke="var(--stm)"/>
+      <text x="93" y="63" text-anchor="middle" font-family="IBM Plex Sans" font-size="12.5" font-weight="600" fill="var(--ink)">Conversation 1</text>
+      <text x="93" y="80" text-anchor="middle" font-family="IBM Plex Sans" font-size="10.5" fill="var(--faint)">sam orders</text>
+      <!-- extraction -->
+      <rect x="230" y="34" width="180" height="66" rx="7" fill="var(--panel)" stroke="var(--ltm)" stroke-dasharray="4 3"/>
+      <text x="320" y="58" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" font-weight="600" fill="var(--ltm)">background strategy</text>
+      <text x="320" y="76" text-anchor="middle" font-family="IBM Plex Sans" font-size="10.5" fill="var(--soft)">distills ~60s later</text>
+      <text x="320" y="91" text-anchor="middle" font-family="IBM Plex Sans" font-size="10.5" fill="var(--faint)">async · you pay no latency</text>
+      <!-- note store -->
+      <rect x="470" y="34" width="180" height="66" rx="7" fill="var(--ltm-soft)" stroke="var(--ltm)"/>
+      <text x="560" y="58" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--ink)">/customers/sam</text>
+      <text x="560" y="78" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="var(--soft)">"usual: oat-milk latte,</text>
+      <text x="560" y="93" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="var(--soft)">extra hot"</text>
+      <line x1="168" y1="67" x2="228" y2="67" stroke="currentColor" marker-end="url(#m1)"/>
+      <text x="176" y="60" font-family="IBM Plex Mono, monospace" font-size="9" fill="var(--faint)">event</text>
+      <line x1="410" y1="67" x2="468" y2="67" stroke="var(--ltm)" marker-end="url(#m2)"/>
+      <!-- conversation 2 -->
+      <rect x="18" y="160" width="150" height="60" rx="7" fill="var(--stm-soft)" stroke="var(--stm)"/>
+      <text x="93" y="184" text-anchor="middle" font-family="IBM Plex Sans" font-size="12.5" font-weight="600" fill="var(--ink)">Conversation 2</text>
+      <text x="93" y="201" text-anchor="middle" font-family="IBM Plex Sans" font-size="10.5" fill="var(--faint)">NEW thread</text>
+      <text x="93" y="215" text-anchor="middle" font-family="IBM Plex Sans" font-size="10.5" fill="var(--faint)">"the usual, please"</text>
+      <!-- retrieval into reply -->
+      <rect x="470" y="150" width="410" height="72" rx="7" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="490" y="174" font-family="IBM Plex Sans" font-size="12.5" fill="var(--ink)">agent retrieves the note, injects it,</text>
+      <text x="490" y="194" font-family="IBM Plex Sans" font-size="12.5" fill="var(--ink)">and rings up: <tspan font-weight="600" fill="var(--ltm)">large oat-milk latte, extra hot</tspan></text>
+      <text x="490" y="213" font-family="IBM Plex Sans" font-size="11" fill="var(--faint)">a different customer with no note → "what would you like?"</text>
+      <path d="M560 100 L560 130 Q560 150 580 150" fill="none" stroke="var(--ltm)" stroke-dasharray="4 3" marker-end="url(#m2)"/>
+      <text x="566" y="122" font-family="IBM Plex Mono, monospace" font-size="9" fill="var(--ltm)">retrieve</text>
+      <line x1="168" y1="188" x2="468" y2="188" stroke="currentColor" marker-end="url(#m1)"/>
+    </svg>
+    <figcaption>Verified in the cloud: Sam's "usual" — taught in conversation 1 — was rung up correctly in a brand-new conversation 2. A control customer with no note was asked what they'd like.</figcaption>
+  </figure></div>
+</div>

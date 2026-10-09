@@ -1,0 +1,541 @@
+<title>The Harness Dev Loop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #F5F3EE;
+    --panel: #FBFAF6;
+    --ink: #23201A;
+    --soft: #5C574C;
+    --faint: #8A8375;
+    --line: #D9D3C6;
+    --accent: #B4531F;          /* terracotta — the harness / managed platform */
+    --accent-soft: #F0E0D3;
+    --cli: #1F6E63;             /* teal — the CLI identity (chapter 2's color) */
+    --cli-soft: #DCEAE6;
+    --managed: #2E6B4F;         /* green — executed by the managed loop */
+    --managed-soft: #DCEBE1;
+    --code-bg: #211E18;
+    --code-ink: #E5DFD2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #17150F; --panel: #201D16; --ink: #ECE7DA; --soft: #B3AB99;
+      --faint: #857D6C; --line: #34301F; --accent: #E28A57; --accent-soft: #3A251A;
+      --cli: #5FB3A1; --cli-soft: #1B2C28;
+      --managed: #6FBE92; --managed-soft: #1D2E24;
+      --code-bg: #100E0A; --code-ink: #DAD3C4;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #17150F; --panel: #201D16; --ink: #ECE7DA; --soft: #B3AB99;
+    --faint: #857D6C; --line: #34301F; --accent: #E28A57; --accent-soft: #3A251A;
+    --cli: #5FB3A1; --cli-soft: #1B2C28;
+    --managed: #6FBE92; --managed-soft: #1D2E24;
+    --code-bg: #100E0A; --code-ink: #DAD3C4;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif; line-height: 1.6; font-size: 16px;
+  }
+  .wrap { max-width: 940px; margin: 0 auto; padding: 56px 24px 80px; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--accent); font-weight: 600;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 600;
+    font-size: clamp(30px, 5vw, 44px); line-height: 1.08; letter-spacing: -.01em;
+    margin: 8px 0 10px; text-wrap: balance;
+  }
+  .lede { color: var(--soft); font-size: 18px; max-width: 660px; margin: 0 0 28px; }
+  .lede code, p code, li code {
+    font-family: "IBM Plex Mono", monospace; font-size: .85em;
+    background: var(--cli-soft); color: var(--ink); padding: 1px 6px; border-radius: 3px;
+  }
+  figure { margin: 0 0 8px; }
+  figure svg { display: block; width: 100%; height: auto; }
+  figcaption { color: var(--faint); font-size: 13.5px; max-width: 660px; margin: 10px auto 0; text-align: center; }
+  .path-caps {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin: 14px 0 0;
+  }
+  @media (max-width: 720px) { .path-caps { grid-template-columns: 1fr; } }
+  .path-caps p { margin: 0; font-size: 13.5px; color: var(--soft); line-height: 1.55; }
+  .path-caps p b {
+    display: block; font-family: "IBM Plex Mono", monospace; font-size: 10.5px;
+    letter-spacing: .12em; text-transform: uppercase; color: var(--accent);
+    font-weight: 600; margin-bottom: 3px;
+  }
+  .files { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 0; }
+  @media (max-width: 760px) { .files { grid-template-columns: 1fr; } }
+  .file {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    overflow: hidden; display: flex; flex-direction: column;
+  }
+  .file .fname {
+    font-family: "IBM Plex Mono", monospace; font-size: 12px; font-weight: 600;
+    color: var(--accent); padding: 10px 16px; border-bottom: 1px solid var(--line);
+  }
+  .file .fname span { color: var(--faint); font-weight: 400; margin-left: 8px; }
+  .file pre {
+    margin: 0; padding: 14px 16px; background: var(--code-bg); color: var(--code-ink);
+    font-family: "IBM Plex Mono", monospace; font-size: 11.5px; line-height: 1.6;
+    overflow-x: auto; flex: 1;
+  }
+  .file pre em { font-style: normal; color: var(--cli); }
+  .file .fsay {
+    padding: 12px 16px; font-size: 13.5px; color: var(--soft); border-top: 1px solid var(--line);
+  }
+  .file .fsay b {
+    display: block; font-family: "IBM Plex Mono", monospace; font-size: 10.5px;
+    letter-spacing: .12em; text-transform: uppercase; color: var(--accent);
+    font-weight: 600; margin-bottom: 3px;
+  }
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 40px 0 0; }
+  @media (max-width: 760px) { .cards { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    padding: 18px 18px 16px;
+  }
+  .card .cmd {
+    font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 14px;
+    color: var(--cli); margin: 0 0 2px;
+  }
+  .card .tag {
+    font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 17px;
+    margin: 0 0 8px; letter-spacing: -.01em;
+  }
+  .card p { font-size: 14px; color: var(--soft); margin: 0 0 8px; }
+  .card p:last-child { margin-bottom: 0; }
+  .card p strong { color: var(--ink); font-weight: 600; }
+  .note {
+    margin: 28px 0 0; padding: 14px 18px; border-left: 3px solid var(--accent);
+    background: var(--panel); border-radius: 0 8px 8px 0; max-width: 720px;
+  }
+  .note p { margin: 0; font-size: 14.5px; color: var(--soft); }
+  .note p strong { color: var(--ink); }
+  .answer {
+    margin: 40px 0 0; background: var(--code-bg); color: var(--code-ink);
+    border-radius: 10px; padding: 22px 26px;
+  }
+  .answer .eyebrow { color: var(--cli); }
+  .answer p { margin: 6px 0 0; font-size: 15.5px; line-height: 1.65; }
+  .answer code { background: rgba(255,255,255,.08); color: inherit; }
+  h2 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 24px;
+    margin: 56px 0 4px; letter-spacing: -.01em;
+  }
+  .sub { color: var(--faint); font-size: 14px; margin: 0 0 20px; }
+  .beat {
+    display: grid; grid-template-columns: 118px 1fr; gap: 4px 20px;
+    padding: 18px 0; border-top: 1px solid var(--line);
+  }
+  .beat:last-of-type { border-bottom: 1px solid var(--line); }
+  @media (max-width: 640px) { .beat { grid-template-columns: 1fr; } }
+  .beat .no {
+    font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--accent); font-weight: 600; padding-top: 3px;
+  }
+  .beat .no small { display: block; color: var(--faint); letter-spacing: .04em; margin-top: 2px; }
+  .beat .say {
+    font-family: "Fraunces", Georgia, serif; font-size: 17px; line-height: 1.5;
+    margin: 0 0 8px; color: var(--ink);
+  }
+  .beat .meta { font-size: 13px; color: var(--soft); margin: 0; }
+  .beat .meta b {
+    font-family: "IBM Plex Mono", monospace; font-size: 10.5px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--faint); font-weight: 600; margin-right: 6px;
+  }
+  .beat .meta code {
+    font-family: "IBM Plex Mono", monospace; font-size: 12px;
+    background: var(--cli-soft); padding: 1px 6px; border-radius: 3px;
+  }
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">Chapter 3 · The Harness</div>
+  <h1>The Harness Dev Loop</h1>
+  <p class="lede">
+    For a harness, <code>dev</code>, <code>deploy</code>, and <code>invoke</code> all end up at the
+    <em>same</em> deployed agent — because there is nothing to run on your laptop. The loop, the
+    tools, and the model live AWS-side; the CLI just gives you three doors into them.
+  </p>
+
+  <h2 style="margin-top:8px">The whole path</h2>
+  <p class="sub">Wizard choice → declaration → dev → working agent. Four stages you can point at while talking.</p>
+
+  <figure>
+    <svg viewBox="0 0 920 344" role="img"
+         aria-label="Four stages left to right: the create wizard where Harness is the default choice over the code-agent frameworks; the harness's own configuration choices — model, tools, and memory, with bedrock Sonnet, browser plus code interpreter, and managed memory selected; agentcore dev deploying to AWS and opening the local cockpit; and using the agent, whose managed loop runs the model with browser and code-interpreter sandboxes to produce a report.">
+      <defs>
+        <marker id="arr-p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--faint)"/>
+        </marker>
+      </defs>
+
+      <!-- stage 1: choose -->
+      <rect x="10" y="30" width="200" height="284" rx="8" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="26" y="58" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="2" fill="var(--faint)">1 · CHOOSE</text>
+      <text x="26" y="84" font-family="IBM Plex Mono, monospace" font-size="12.5" font-weight="600" fill="var(--cli)">agentcore create</text>
+      <rect x="26" y="100" width="168" height="52" rx="5" fill="var(--accent-soft)" stroke="var(--accent)"/>
+      <text x="38" y="122" font-size="12.5" font-weight="600" fill="var(--ink)">Harness — declare it</text>
+      <text x="38" y="140" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--accent)">THE DEFAULT</text>
+      <rect x="26" y="162" width="168" height="88" rx="5" fill="none" stroke="var(--line)"/>
+      <text x="38" y="184" font-size="12.5" fill="var(--soft)">Code agent — write it</text>
+      <text x="38" y="204" font-size="10.5" fill="var(--faint)">Strands · LangGraph</text>
+      <text x="38" y="220" font-size="10.5" fill="var(--faint)">Google ADK · OpenAI</text>
+      <text x="38" y="236" font-size="10.5" fill="var(--faint)">Agents · Vercel AI</text>
+
+      <line x1="214" y1="172" x2="236" y2="172" stroke="var(--faint)" stroke-width="1.5" marker-end="url(#arr-p)"/>
+
+      <!-- stage 2: configure -->
+      <rect x="240" y="30" width="200" height="284" rx="8" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="256" y="58" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="2" fill="var(--faint)">2 · CONFIGURE</text>
+
+      <text x="256" y="82" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="1.5" fill="var(--faint)">MODEL</text>
+      <rect x="256" y="90" width="168" height="24" rx="4" fill="var(--accent-soft)" stroke="var(--accent)"/>
+      <text x="266" y="106" font-size="11" font-weight="600" fill="var(--ink)">bedrock · Sonnet 4.5 ✓</text>
+      <text x="256" y="132" font-size="10" fill="var(--faint)">open_ai · gemini · lite_llm</text>
+
+      <text x="256" y="156" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="1.5" fill="var(--faint)">TOOLS</text>
+      <rect x="256" y="164" width="168" height="24" rx="4" fill="var(--accent-soft)" stroke="var(--accent)"/>
+      <text x="266" y="180" font-size="11" font-weight="600" fill="var(--ink)">browser + code interp. ✓</text>
+      <text x="256" y="206" font-size="10" fill="var(--faint)">MCP · gateway · inline fn</text>
+
+      <text x="256" y="230" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="1.5" fill="var(--faint)">MEMORY</text>
+      <rect x="256" y="238" width="168" height="24" rx="4" fill="var(--accent-soft)" stroke="var(--accent)"/>
+      <text x="266" y="254" font-size="11" font-weight="600" fill="var(--ink)">managed ✓</text>
+      <text x="256" y="280" font-size="10" fill="var(--faint)">disabled (default) · existing</text>
+
+      <text x="256" y="302" font-size="11" font-weight="600" fill="var(--accent)">→ all lands in two files, no code</text>
+
+      <line x1="444" y1="172" x2="466" y2="172" stroke="var(--faint)" stroke-width="1.5" marker-end="url(#arr-p)"/>
+
+      <!-- stage 3: launch -->
+      <rect x="470" y="30" width="200" height="284" rx="8" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="486" y="58" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="2" fill="var(--faint)">3 · LAUNCH</text>
+      <text x="486" y="84" font-family="IBM Plex Mono, monospace" font-size="12.5" font-weight="600" fill="var(--cli)">agentcore dev</text>
+      <rect x="486" y="100" width="168" height="60" rx="5" fill="none" stroke="var(--cli)"/>
+      <text x="498" y="122" font-size="12" font-weight="600" fill="var(--ink)">① deploys to AWS</text>
+      <text x="498" y="140" font-size="10.5" fill="var(--soft)">stack → harness READY</text>
+      <text x="498" y="153" font-size="10.5" fill="var(--faint)">no local mode exists</text>
+      <rect x="486" y="170" width="168" height="48" rx="5" fill="none" stroke="var(--cli)"/>
+      <text x="498" y="192" font-size="12" font-weight="600" fill="var(--ink)">② opens the cockpit</text>
+      <text x="498" y="209" font-size="10.5" fill="var(--soft)">inspector · localhost:8081</text>
+      <text x="486" y="248" font-size="11" fill="var(--faint)">deploy = ① only · CI path</text>
+
+      <line x1="674" y1="172" x2="696" y2="172" stroke="var(--faint)" stroke-width="1.5" marker-end="url(#arr-p)"/>
+
+      <!-- stage 4: use -->
+      <rect x="700" y="30" width="210" height="284" rx="8" fill="var(--panel)" stroke="var(--managed)" stroke-width="1.5"/>
+      <text x="716" y="58" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="2" fill="var(--faint)">4 · USE</text>
+      <text x="716" y="84" font-size="12.5" font-weight="600" fill="var(--ink)">chat · invoke</text>
+      <rect x="716" y="100" width="178" height="30" rx="5" fill="var(--managed-soft)"/>
+      <text x="728" y="120" font-size="11.5" fill="var(--ink)">Sonnet 4.5 reasons</text>
+      <rect x="716" y="138" width="178" height="30" rx="5" fill="var(--managed-soft)"/>
+      <text x="728" y="158" font-size="11.5" fill="var(--ink)">browser gathers facts</text>
+      <rect x="716" y="176" width="178" height="30" rx="5" fill="var(--managed-soft)"/>
+      <text x="728" y="196" font-size="11.5" fill="var(--ink)">code interpreter compares</text>
+      <rect x="716" y="214" width="178" height="30" rx="5" fill="var(--managed-soft)"/>
+      <text x="728" y="234" font-size="11.5" fill="var(--ink)">memory keeps the thread</text>
+      <text x="716" y="272" font-size="12" font-weight="600" fill="var(--managed)">→ the report</text>
+      <text x="716" y="290" font-size="10.5" fill="var(--faint)">all rounds run AWS-side</text>
+    </svg>
+    <figcaption>
+      The harness path end to end: choose it in the wizard (it's the default), pick its model,
+      tools, and memory, <code>dev</code> deploys and opens the cockpit, and every conversation
+      runs in the managed loop.
+    </figcaption>
+  </figure>
+
+  <div class="path-caps">
+    <p><b>Say over 1</b>"The wizard gives you one real choice: write the agent in a framework —
+       or just describe it. The Harness is literally the default."</p>
+    <p><b>Say over 2</b>"Then three decisions: which model — Sonnet on Bedrock; which tools — I
+       take the built-in browser and code interpreter; and memory — disabled is the default, but I
+       select <em>managed</em>: AgentCore owns the conversation memory for me. All of it lands in
+       two files. Zero code."</p>
+    <p><b>Say over 3</b>"dev deploys first — a harness only exists in the cloud — then opens a
+       local cockpit to talk to it."</p>
+    <p><b>Say over 4</b>"Every message runs AWS-side: the model reasons, the browser gathers,
+       the code interpreter compares, memory keeps the thread — out comes the report."</p>
+  </div>
+
+  <h2>The two files</h2>
+  <p class="sub">The entire agent, exactly as deployed on 2026-09-26. Highlighted values are the choices from stage 2.</p>
+
+  <div class="files">
+    <div class="file">
+      <div class="fname">harness.json <span>— the spec sheet</span></div>
+      <pre>{
+  "name": "ResearchAgent",
+  "model": {
+    "provider": "bedrock",
+    "modelId": <em>"us.anthropic.claude-sonnet-4-5…"</em>
+  },
+  "tools": [
+    { "type": <em>"agentcore_browser"</em> },
+    { "type": <em>"agentcore_code_interpreter"</em> }
+  ],
+  "memory": { "mode": <em>"managed"</em> }
+}</pre>
+      <div class="fsay">
+        <b>Say</b>"This file is the spec sheet: which brain, what it can do, whether it
+        remembers. Four fields. The two tools are built-ins — AWS runs them, not me. And
+        memory is one word: managed."
+      </div>
+    </div>
+    <div class="file">
+      <div class="fname">system-prompt.md <span>— the job description</span></div>
+      <pre>You are a research agent.
+
+Given a research goal, investigate the topic
+using the tools available to you.
+<em>The user's message IS the research goal</em> —
+never ask them to restate or clarify it.
+
+Use the browser to find current information.
+Go directly to authoritative pages…
+<em>Budget: at most 5 browser actions per goal.</em>
+If a browser action fails twice, stop browsing
+and continue with what you already know…
+
+Use the code interpreter when analysis or
+calculations are useful.
+
+<em>Always end your turn with the report</em> —
+a concise summary of what you found.
+Never end with a question.</pre>
+      <div class="fsay">
+        <b>Say</b>"And this file is the job description — who the agent is, and its working
+        rules. Notice they read like instructions to a junior researcher: use good sources,
+        budget your browsing, and always come back with the report. Prompt engineering IS
+        the programming model here."
+      </div>
+    </div>
+  </div>
+
+  <h2>Two territories, three doors</h2>
+  <p class="sub">Where each command actually lands — nothing executes on the laptop.</p>
+
+  <figure>
+    <svg viewBox="0 0 920 560" role="img"
+         aria-label="Three CLI commands crossing the border between the laptop and AWS: dev and deploy both create or update the CloudFormation stack that holds the harness; dev additionally serves the local inspector, whose chat messages and the invoke command both call the deployed harness, which runs the managed loop with the model and tool sandboxes.">
+      <defs>
+        <marker id="arr-cli" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--cli)"/>
+        </marker>
+        <marker id="arr-acc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/>
+        </marker>
+      </defs>
+
+      <!-- territories -->
+      <rect x="16" y="46" width="368" height="498" rx="10" fill="var(--panel)" stroke="var(--line)"/>
+      <rect x="536" y="46" width="368" height="498" rx="10" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="36" y="76" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="2" fill="var(--faint)">YOUR LAPTOP</text>
+      <text x="556" y="76" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="2" fill="var(--faint)">AWS · US-EAST-1</text>
+
+      <!-- laptop: declaration -->
+      <rect x="36" y="94" width="328" height="92" rx="6" fill="none" stroke="var(--line)"/>
+      <text x="52" y="118" font-size="13" font-weight="600" fill="var(--ink)">The declaration — the whole agent</text>
+      <rect x="52" y="130" width="148" height="24" rx="4" fill="var(--accent-soft)"/>
+      <text x="60" y="146" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--ink)">harness.json</text>
+      <rect x="208" y="130" width="140" height="24" rx="4" fill="var(--accent-soft)"/>
+      <text x="216" y="146" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--ink)">system-prompt.md</text>
+      <text x="52" y="174" font-size="11" fill="var(--faint)">model · tools · memory · instructions — zero code</text>
+
+      <!-- laptop: CLI -->
+      <rect x="36" y="224" width="328" height="66" rx="6" fill="none" stroke="var(--cli)" stroke-width="1.5"/>
+      <text x="52" y="248" font-size="13" font-weight="600" fill="var(--ink)">agentcore CLI</text>
+      <text x="52" y="272" font-family="IBM Plex Mono, monospace" font-size="12" fill="var(--cli)">dev · deploy · invoke</text>
+
+      <!-- laptop: inspector -->
+      <rect x="36" y="392" width="328" height="118" rx="6" fill="none" stroke="var(--line)"/>
+      <text x="52" y="416" font-size="13" font-weight="600" fill="var(--ink)">Agent Inspector</text>
+      <text x="52" y="436" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--faint)">localhost:8081 — web UI only</text>
+      <text x="52" y="462" font-size="12" fill="var(--soft)">chat with the deployed harness</text>
+      <text x="52" y="482" font-size="12" fill="var(--soft)">traces · memories · settings playground</text>
+
+      <!-- dev serves inspector (local, vertical) -->
+      <line x1="120" y1="290" x2="120" y2="388" stroke="var(--cli)" stroke-width="1.5" marker-end="url(#arr-cli)"/>
+      <text x="132" y="336" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--cli)">dev serves</text>
+      <text x="132" y="352" font-size="11" fill="var(--faint)">(UI is the only local part)</text>
+
+      <!-- AWS: stack -->
+      <rect x="556" y="94" width="328" height="150" rx="6" fill="none" stroke="var(--line)"/>
+      <text x="572" y="118" font-size="13" font-weight="600" fill="var(--ink)">CloudFormation stack</text>
+      <text x="572" y="136" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--faint)">AgentCore-researchagent-default</text>
+      <rect x="572" y="148" width="296" height="42" rx="4" fill="var(--accent-soft)"/>
+      <text x="584" y="166" font-size="12" font-weight="600" fill="var(--ink)">Harness resource</text>
+      <text x="584" y="182" font-size="11" fill="var(--soft)">declaration baked in at deploy time</text>
+      <rect x="572" y="198" width="296" height="30" rx="4" fill="none" stroke="var(--line)"/>
+      <text x="584" y="218" font-size="12" fill="var(--soft)">IAM execution roles</text>
+
+      <!-- defines -->
+      <line x1="720" y1="244" x2="720" y2="296" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#arr-acc)"/>
+      <text x="732" y="274" font-size="11" fill="var(--faint)">configures</text>
+
+      <!-- AWS: managed loop -->
+      <rect x="556" y="300" width="328" height="210" rx="6" fill="none" stroke="var(--managed)" stroke-width="1.5"/>
+      <text x="572" y="326" font-size="13" font-weight="600" fill="var(--ink)">The managed loop</text>
+      <text x="572" y="344" font-size="11" fill="var(--faint)">reason → call tool → repeat → answer</text>
+      <rect x="572" y="356" width="296" height="36" rx="4" fill="var(--managed-soft)"/>
+      <text x="584" y="379" font-size="12" fill="var(--ink)">Bedrock model — Sonnet 4.5</text>
+      <rect x="572" y="400" width="142" height="52" rx="4" fill="var(--managed-soft)"/>
+      <text x="584" y="421" font-size="12" fill="var(--ink)">browser</text>
+      <text x="584" y="440" font-size="10.5" fill="var(--soft)">sandbox</text>
+      <rect x="726" y="400" width="142" height="52" rx="4" fill="var(--managed-soft)"/>
+      <text x="738" y="421" font-size="12" fill="var(--ink)">code interpreter</text>
+      <text x="738" y="440" font-size="10.5" fill="var(--soft)">sandbox</text>
+      <text x="572" y="486" font-size="11" fill="var(--faint)">all three run here — never on the laptop</text>
+
+      <!-- dev arrow -->
+      <line x1="364" y1="240" x2="552" y2="140" stroke="var(--cli)" stroke-width="2" marker-end="url(#arr-cli)"/>
+      <text x="400" y="152" font-family="IBM Plex Mono, monospace" font-size="12" font-weight="600" fill="var(--cli)">dev</text>
+      <text x="400" y="168" font-size="11" fill="var(--soft)">synth CDK →</text>
+      <text x="400" y="182" font-size="11" fill="var(--soft)">create/update stack</text>
+
+      <!-- deploy arrow -->
+      <line x1="364" y1="262" x2="552" y2="200" stroke="var(--cli)" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arr-cli)"/>
+      <text x="404" y="228" font-family="IBM Plex Mono, monospace" font-size="12" font-weight="600" fill="var(--cli)">deploy</text>
+      <text x="404" y="244" font-size="11" fill="var(--soft)">same stack update,</text>
+      <text x="404" y="258" font-size="11" fill="var(--soft)">no inspector</text>
+
+      <!-- invoke arrow -->
+      <line x1="364" y1="284" x2="552" y2="330" stroke="var(--cli)" stroke-width="1.5" stroke-dasharray="2 4" marker-end="url(#arr-cli)"/>
+      <text x="410" y="296" font-family="IBM Plex Mono, monospace" font-size="12" font-weight="600" fill="var(--cli)">invoke</text>
+      <text x="410" y="312" font-size="11" fill="var(--soft)">one-shot prompt,</text>
+      <text x="410" y="326" font-size="11" fill="var(--soft)">no deploying</text>
+
+      <!-- chat arrow -->
+      <line x1="364" y1="452" x2="552" y2="452" stroke="var(--accent)" stroke-width="2" marker-end="url(#arr-acc)"/>
+      <text x="392" y="440" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--accent)">invoke_harness</text>
+      <text x="392" y="472" font-size="11" fill="var(--faint)">per chat message · streams back</text>
+    </svg>
+    <figcaption>
+      Three commands, one agent: <code>dev</code> and <code>deploy</code> both land on the same
+      CloudFormation stack; chat messages and <code>invoke</code> both call the same deployed harness.
+    </figcaption>
+  </figure>
+
+  <div class="cards">
+    <div class="card">
+      <p class="cmd">agentcore dev</p>
+      <p class="tag">Deploys, then hands you a cockpit</p>
+      <p>Synthesizes the CDK app, <strong>creates or updates the stack</strong>, then serves the
+         inspector on localhost. That's the whole trick: for a harness, dev = deploy + inspector.</p>
+      <p><strong>Use it</strong> as your main loop while shaping the agent — chat, watch traces,
+         iterate on the prompt.</p>
+    </div>
+    <div class="card">
+      <p class="cmd">agentcore deploy</p>
+      <p class="tag">The same deployment, minus the cockpit</p>
+      <p>The identical CDK synth and stack update, with no dev server. Nothing extra to run after
+         dev — <strong>it's the same stack</strong>.</p>
+      <p><strong>Use it</strong> to push a config change without the inspector, or from CI — this is
+         the production path.</p>
+    </div>
+    <div class="card">
+      <p class="cmd">agentcore invoke</p>
+      <p class="tag">A caller, not a deployer</p>
+      <p>Sends one prompt to the <strong>already-deployed</strong> harness from the terminal.
+         Deploys nothing, changes nothing.</p>
+      <p><strong>Use it</strong> for smoke tests and scripting. Harness quirk: it prints only the
+         first assistant turn — the full tool-using run shows in traces.</p>
+    </div>
+  </div>
+
+  <div class="note">
+    <p><strong>The edit gotcha (hit live, 2026-09-26):</strong> the running dev server does not
+       hot-sync <code>harness.json</code> edits to AWS — the declaration is baked in at deploy time.
+       After editing, restart <code>dev</code> (quick stack <em>update</em>) or run
+       <code>deploy</code>. Why the docs still say "local hot-reload": that's the <em>code-agent</em>
+       path, where dev builds and runs a container on your machine. A harness has no code to run —
+       so its dev loop goes through the cloud.</p>
+  </div>
+
+  <div class="answer">
+    <div class="eyebrow">So, for today</div>
+    <p><code>dev</code> alone is enough: restart it to pick up the Sonnet 4.5 edit, then chat in the
+       inspector. <code>deploy</code> is optional (same push without the cockpit) and
+       <code>invoke</code> is optional (terminal smoke test). Whichever door you use, you're talking
+       to the same deployed harness.</p>
+  </div>
+
+  <h2>Script essentials — the six beats</h2>
+  <p class="sub">~5 minutes total · every line below was verified live on 2026-09-26 with the ResearchAgent harness.</p>
+
+  <div class="beat">
+    <div class="no">Intro<small>~0:30</small></div>
+    <div>
+      <p class="say">"This is a working AI agent, deployed on AWS. It reasons, it browses the web,
+        it writes and runs code in a sandbox. And here is <em>all</em> of it — two files.
+        Zero lines of agent code."</p>
+      <p class="meta"><b>Show</b> harness.json and system-prompt.md side by side, nothing else.</p>
+    </div>
+  </div>
+
+  <div class="beat">
+    <div class="no">Setup<small>~1:00</small></div>
+    <div>
+      <p class="say">"You don't <em>write</em> an agent — you <em>declare</em> one. The config names a
+        model, its tools — here, the built-in browser and code interpreter — and memory, one line.
+        The prompt file says what the agent is. AgentCore assembles the rest: the loop, tool
+        execution, streaming, retries."</p>
+      <p class="meta"><b>Show</b> the four fields of harness.json, then the prompt. <b>Run</b>
+        <code>agentcore create</code> mentioned in passing — the scaffold, not the concept.</p>
+    </div>
+  </div>
+
+  <div class="beat">
+    <div class="no">Launch<small>~0:45</small></div>
+    <div>
+      <p class="say">"One command: <em>dev</em>. And watch what it does first — it deploys.
+        A harness only exists in the cloud; there's nothing to run on my laptop. So dev pushes the
+        declaration to AWS, then opens a local cockpit to talk to it."</p>
+      <p class="meta"><b>Show</b> the terminal deploy phase (CloudFormation progress), then the
+        inspector connecting. <b>Run</b> <code>agentcore dev</code></p>
+    </div>
+  </div>
+
+  <div class="beat">
+    <div class="no">Demo<small>~1:30</small></div>
+    <div>
+      <p class="say">"Let's give it a real research goal — and just watch the loop work: browser
+        rounds to gather facts, the code interpreter to build the comparison, then a report.
+        We wrote none of this code, and none of it ran on my machine."</p>
+      <p class="meta"><b>Show</b> the inspector chat; expand the tools-used strip as rounds land.
+        <b>Prompt</b> "Research three open-weight language models that can realistically run on a
+        single GPU. Compare their model size, context window, hardware requirements, and license.
+        Produce a concise report explaining the trade-offs."</p>
+      <p class="meta"><b>Reality check</b> output varies per take (different model trios are normal);
+        a failed page-load mid-run is fine — the agent pivots and still reports. Record a real take.</p>
+    </div>
+  </div>
+
+  <div class="beat">
+    <div class="no">Two cmds<small>~0:30</small></div>
+    <div>
+      <p class="say">"You might wonder — dev just deployed, so what's <em>deploy</em> for?
+        Deploy is a step; dev is a loop that begins with that step. Deploy ships it —
+        dev ships it and pulls up a chair. On the code path, dev means <em>run it here</em>.
+        A harness has no 'here'."</p>
+      <p class="meta"><b>Show</b> the dev-loop diagram above. <b>Run</b>
+        <code>agentcore deploy --diff</code> → "There were no differences" — the on-camera proof
+        that dev already shipped everything.</p>
+    </div>
+  </div>
+
+  <div class="beat">
+    <div class="no">Close<small>~0:45</small></div>
+    <div>
+      <p class="say">"That's the Harness: the fastest path from an idea to a deployed, tool-using
+        agent — a config file and a prompt. One agent with a clear job is its home turf. The moment
+        the <em>orchestration</em> becomes the hard part — custom routing, agents supervising
+        agents — you graduate to code. And that's the next video."</p>
+      <p class="meta"><b>Show</b> camera; optional cutaway to the two files one last time.</p>
+    </div>
+  </div>
+</div>

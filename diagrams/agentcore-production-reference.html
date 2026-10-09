@@ -1,0 +1,413 @@
+<title>Weather Agent on AgentCore</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #F6F8F7;
+    --bg-raise: #FFFFFF;
+    --bg-inset: #EDF1EF;
+    --ink: #1B2422;
+    --ink-soft: #45524E;
+    --ink-faint: #6B7A75;
+    --line: #D5DDDA;
+    --accent: #20606E;
+    --accent-ink: #FFFFFF;
+    --ok: #2E7D4F;
+    --ok-bg: #E3F0E8;
+    --warn: #9A6B1F;
+    --warn-bg: #F5ECD9;
+    --bad: #A63A32;
+    --bad-bg: #F6E3E1;
+    --code-bg: #1E2A2D;
+    --code-ink: #D8E4E1;
+    --code-accent: #8FC7D4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141B1D;
+      --bg-raise: #1B2427;
+      --bg-inset: #101719;
+      --ink: #DCE5E2;
+      --ink-soft: #A3B2AD;
+      --ink-faint: #74837E;
+      --line: #2C383B;
+      --accent: #6FB5C4;
+      --accent-ink: #0F181A;
+      --ok: #6CBE8E;
+      --ok-bg: #1B2E24;
+      --warn: #D2A45B;
+      --warn-bg: #2E2618;
+      --bad: #D98078;
+      --bad-bg: #33201E;
+      --code-bg: #10171A;
+      --code-ink: #C7D5D1;
+      --code-accent: #7FBECB;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141B1D;
+    --bg-raise: #1B2427;
+    --bg-inset: #101719;
+    --ink: #DCE5E2;
+    --ink-soft: #A3B2AD;
+    --ink-faint: #74837E;
+    --line: #2C383B;
+    --accent: #6FB5C4;
+    --accent-ink: #0F181A;
+    --ok: #6CBE8E;
+    --ok-bg: #1B2E24;
+    --warn: #D2A45B;
+    --warn-bg: #2E2618;
+    --bad: #D98078;
+    --bad-bg: #33201E;
+    --code-bg: #10171A;
+    --code-ink: #C7D5D1;
+    --code-accent: #7FBECB;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 24px 96px; }
+  .prose { max-width: 760px; }
+
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  header { padding: 72px 0 8px; border-bottom: 2px solid var(--ink); margin-bottom: 8px; }
+  h1 {
+    font-size: clamp(34px, 5.5vw, 52px);
+    line-height: 1.08;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    margin: 10px 0 14px;
+    text-wrap: balance;
+  }
+  .standfirst { font-size: 19px; color: var(--ink-soft); max-width: 700px; margin: 0 0 28px; text-wrap: balance; }
+  .meta {
+    display: flex; flex-wrap: wrap; gap: 18px;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12.5px; color: var(--ink-faint);
+    padding: 14px 0 18px;
+  }
+  .meta b { color: var(--ink-soft); font-weight: 500; }
+
+  h2 {
+    font-size: 26px; font-weight: 700; letter-spacing: -0.01em;
+    margin: 64px 0 6px; text-wrap: balance;
+  }
+  h2 .num {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 15px; color: var(--accent); font-weight: 600;
+    vertical-align: 6px; margin-right: 10px;
+  }
+  h3 { font-size: 18px; font-weight: 600; margin: 30px 0 6px; }
+  p { margin: 10px 0 16px; }
+  .prose p, .prose li { max-width: 70ch; }
+  a { color: var(--accent); }
+
+  .chip {
+    display: inline-block;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11px; font-weight: 600; letter-spacing: .08em;
+    padding: 2px 9px 3px; border-radius: 3px;
+    vertical-align: 2px; white-space: nowrap;
+  }
+  .chip.ok   { color: var(--ok);   background: var(--ok-bg); }
+  .chip.warn { color: var(--warn); background: var(--warn-bg); }
+  .chip.bad  { color: var(--bad);  background: var(--bad-bg); }
+
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 12px 28px;
+    background: var(--bg-raise);
+    border: 1px solid var(--line);
+    padding: 16px 20px;
+    margin: 26px 0 0;
+    font-size: 14px; color: var(--ink-soft);
+  }
+  .legend span.item { display: flex; gap: 9px; align-items: baseline; }
+
+  code, .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+  code { font-size: .88em; background: var(--bg-inset); padding: 1px 5px; border-radius: 3px; }
+  pre {
+    background: var(--code-bg); color: var(--code-ink);
+    padding: 18px 20px; overflow-x: auto;
+    font-size: 13.5px; line-height: 1.6;
+    border-radius: 4px; margin: 14px 0 22px;
+  }
+  pre code { background: none; padding: 0; color: inherit; font-size: inherit; }
+  pre .k { color: var(--code-accent); }
+  pre .c { color: #7E938E; }
+
+  table { border-collapse: collapse; width: 100%; margin: 14px 0 26px; font-size: 14.5px; }
+  .tablewrap { overflow-x: auto; }
+  th {
+    text-align: left; font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--ink-faint); font-weight: 600;
+    padding: 8px 14px 8px 0; border-bottom: 2px solid var(--ink);
+  }
+  td { padding: 9px 14px 9px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  td.mono { font-size: 13px; white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: var(--bg-raise);
+    padding: 14px 20px; margin: 20px 0 24px;
+  }
+  .callout.warn { border-left-color: var(--warn); }
+  .callout.bad  { border-left-color: var(--bad); }
+  .callout p:first-child { margin-top: 0; }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout .lab {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11px; font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ink-faint);
+    display: block; margin-bottom: 4px;
+  }
+
+  /* diagrams */
+  .diagram {
+    background: var(--bg-raise); border: 1px solid var(--line);
+    padding: 26px 24px; margin: 22px 0 28px; overflow-x: auto;
+  }
+  .flow { display: flex; align-items: stretch; gap: 0; min-width: 620px; }
+  .node {
+    flex: 1; border: 1.5px solid var(--ink-soft); background: var(--bg);
+    padding: 12px 14px; text-align: center;
+  }
+  .node b { display: block; font-size: 14.5px; }
+  .node small { color: var(--ink-faint); font-size: 12px; line-height: 1.45; display: block; margin-top: 3px; }
+  .node.hl { border-color: var(--accent); border-width: 2px; }
+  .arrow {
+    align-self: center; padding: 0 10px;
+    font-family: "IBM Plex Mono", monospace; color: var(--ink-faint); font-size: 13px;
+    white-space: nowrap;
+  }
+  .lane { margin: 0 0 18px; }
+  .lane:last-child { margin-bottom: 0; }
+  .lane-label {
+    font-family: "IBM Plex Mono", monospace; font-size: 11px; font-weight: 600;
+    letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint);
+    margin-bottom: 8px;
+  }
+
+  ul { padding-left: 22px; }
+  li { margin: 6px 0; }
+  li::marker { color: var(--accent); }
+
+  .verdict {
+    background: var(--bg-inset); border: 1px solid var(--line);
+    padding: 20px 24px; margin-top: 56px;
+  }
+  .verdict p { margin: 6px 0; }
+
+  footer {
+    margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
+    font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--ink-faint);
+  }
+  @media (max-width: 700px) {
+    .flow { flex-direction: column; min-width: 0; }
+    .arrow { padding: 6px 0; align-self: flex-start; }
+  }
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Production Reference · Amazon Bedrock AgentCore</div>
+  <h1>Weather Agent on AgentCore</h1>
+  <p class="standfirst">The honest architecture of a LangGraph agent deployed to AgentCore Runtime with two-tier memory — what is declared, what is verified, and which tutorial habits do not survive production.</p>
+</header>
+<div class="meta">
+  <span><b>runtime</b> weather_agent-G8Ad2iCvn7</span>
+  <span><b>region</b> us-east-1</span>
+  <span><b>stack</b> AgentCore-weatheragent-default</span>
+  <span><b>verified</b> 2026-09-19</span>
+</div>
+
+<div class="legend">
+  <span class="item"><span class="chip ok">VERIFIED</span> proven by experiment on the live system</span>
+  <span class="item"><span class="chip warn">DEV-ONLY</span> fine on a laptop, never the production method</span>
+  <span class="item"><span class="chip bad">ANTI-PATTERN</span> works, and will hurt you later</span>
+</div>
+
+<div class="prose">
+<h2><span class="num">01</span>System at a glance</h2>
+<p>A LangGraph agent (one tool, explicit graph) wrapped by the AgentCore SDK's <code>BedrockAgentCoreApp</code>, deployed to AgentCore Runtime, calling Claude on Bedrock, with conversation memory in the AgentCore Memory service. Every AWS resource is owned by one CloudFormation stack, generated from one declared config.</p>
+</div>
+
+<div class="diagram">
+  <div class="flow">
+    <div class="node"><b>Caller</b><small>boto3 · SigV4 IAM<br><span class="mono">invoke_agent_runtime</span></small></div>
+    <div class="arrow">──▶</div>
+    <div class="node hl"><b>AgentCore Runtime</b><small>per-session microVM<br><span class="mono">/invocations · /ping</span></small></div>
+    <div class="arrow">──▶</div>
+    <div class="node"><b>Bedrock</b><small>Claude Haiku 4.5 via<br><span class="mono">us.</span> inference profile</small></div>
+  </div>
+  <div style="height:18px"></div>
+  <div class="flow">
+    <div class="node" style="visibility:hidden"></div>
+    <div class="arrow" style="transform:rotate(90deg);align-self:flex-start;visibility:hidden">▼</div>
+    <div class="node hl"><b>AgentCore Memory</b><small>STM events + LTM records<br>30-day retention · async extraction</small></div>
+    <div class="arrow">◀──</div>
+    <div class="node"><b>CloudFormation</b><small>owns runtime, memory,<br>strategies, IAM, endpoints</small></div>
+  </div>
+</div>
+
+<div class="prose">
+<p>The framework choice is invisible to the platform <span class="chip ok">VERIFIED</span> — the Runtime sees only an HTTP server in a bundle. The same agent rebuilt in Strands, Google ADK, or plain Python deploys identically.</p>
+
+<h2><span class="num">02</span>The repository is the system</h2>
+<p>The claim that defines production-grade here: <em>tear the account down, run <code>agentcore deploy</code> from the repo, and everything returns</em>. That holds only because each piece lives in a declared file:</p>
+</div>
+
+<div class="tablewrap"><table>
+  <tr><th>Path</th><th>Role</th><th>Consumed by</th></tr>
+  <tr><td class="mono">app/weather_agent/weather_agent.py</td><td>The agent: LangGraph graph, tool, model binding. No AgentCore imports.</td><td>Python, at runtime</td></tr>
+  <tr><td class="mono">app/weather_agent/bedrock_agentcore_app.py</td><td>The SDK bridge: entrypoint, memory wiring, port contract.</td><td>AgentCore Runtime, per request</td></tr>
+  <tr><td class="mono">app/weather_agent/pyproject.toml</td><td>Dependencies — including <code>aws-opentelemetry-distro</code>, which observability-enabled runtimes <em>require in the bundle</em>.</td><td>CLI, at build time</td></tr>
+  <tr><td class="mono">agentcore/agentcore.json</td><td>The declaration: runtime, network mode, OTEL, memory <em>and its extraction strategies</em>.</td><td>CDK synth, at deploy</td></tr>
+  <tr><td class="mono">agentcore/cdk/</td><td>Generated CDK app → CloudFormation stack.</td><td>Pipeline, every deploy</td></tr>
+</table></div>
+
+<div class="prose">
+<div class="callout bad">
+  <span class="lab">Anti-pattern we committed, then reversed</span>
+  <p>The LTM strategy was first attached by a hand-run API script (<code>update_memory</code> from a terminal). It worked — and left the stack believing <code>strategies: []</code> while reality had one. Config drift: unreproducible for a teammate, and a future collision for CloudFormation. The fix was to delete the hand-attached strategy, declare it in <code>agentcore.json</code>, and let the deploy recreate it. <span class="chip ok">VERIFIED</span> — the declared path produced a working strategy end to end.</p>
+  <p>The test for any script: <em>who calls it?</em> If the answer is "a person, once," it belongs in declared config.</p>
+</div>
+
+<h2><span class="num">03</span>Two loops, one artifact contract</h2>
+</div>
+
+<div class="diagram">
+  <div class="lane">
+    <div class="lane-label">Inner loop — laptop, minutes <span class="chip warn">DEV-ONLY</span></div>
+    <div class="flow">
+      <div class="node"><b>edit code</b></div>
+      <div class="arrow">──▶</div>
+      <div class="node"><b>run locally</b><small><span class="mono">python app.py</span> + curl<br>tests logic only</small></div>
+      <div class="arrow">──▶</div>
+      <div class="node"><b>zip deploy</b><small>direct code deploy to a<br>sandbox runtime — seconds</small></div>
+    </div>
+  </div>
+  <div class="lane">
+    <div class="lane-label">Pipeline — every merge, promoted per environment</div>
+    <div class="flow">
+      <div class="node"><b>CI tests</b><small>unit + behavioral<br>(curl the entrypoint)</small></div>
+      <div class="arrow">──▶</div>
+      <div class="node"><b>build once</b><small>container image → ECR<br>tagged by git SHA</small></div>
+      <div class="arrow">──▶</div>
+      <div class="node hl"><b>deploy per env</b><small>same image, different tfvars<br>test → nonprod → prod</small></div>
+      <div class="arrow">──▶</div>
+      <div class="node"><b>rollback</b><small>repoint endpoint to<br>previous runtime version</small></div>
+    </div>
+  </div>
+</div>
+
+<div class="prose">
+<p>Both loops land on the <em>same</em> Runtime service — the platform doesn't care whether the bundle came from a zip or an image. What separates them is reproducibility: the zip resolves dependencies on a laptop at deploy time; the image is built once, scanned, digest-pinned, and promoted untouched. Local testing exercises your logic; only a cloud deploy exercises the platform contract — IAM as the execution role, linux/arm64 dependency resolution, session isolation, the real invocation envelope. <span class="chip ok">VERIFIED</span> — three of our four first-deploy failures were platform-contract errors invisible locally.</p>
+
+<h2><span class="num">04</span>Invocation path</h2>
+<p>Production callers use the data-plane API with IAM auth. This is the path we verified everything through:</p>
+<pre><code><span class="k">client</span> = boto3.client(<span class="k">"bedrock-agentcore"</span>, region_name=<span class="k">"us-east-1"</span>)
+r = client.invoke_agent_runtime(
+    agentRuntimeArn=RUNTIME_ARN,
+    runtimeSessionId=session_id,          <span class="c"># ≥33 chars; your session key</span>
+    payload=json.dumps({
+        <span class="k">"prompt"</span>: <span class="k">"What is the weather in Pune?"</span>,
+        <span class="k">"user_id"</span>: <span class="k">"priya"</span>,               <span class="c"># custom fields pass through verbatim</span>
+        <span class="k">"thread_id"</span>: <span class="k">"conversation-3"</span>,
+    }).encode(),
+)</code></pre>
+<div class="callout warn">
+  <span class="lab">Tooling caveat</span>
+  <p>The npm CLI's <code>agentcore invoke</code> rewraps the payload and silently drops custom fields — our <code>user_id</code> vanished, and memory keyed itself on session IDs instead of users. <span class="chip ok">VERIFIED</span> by reading the memory service's actor list. Use the CLI for smoke tests of <code>prompt</code> only; anything with a payload contract goes through the SDK.</p>
+</div>
+
+<h2><span class="num">05</span>Memory: one interface, two tiers, two writes</h2>
+<p>LangGraph and AgentCore Memory are layers, not rivals. LangGraph's checkpointer is the <em>interface</em> (save/load conversation state under a <code>thread_id</code>); AgentCore Memory is a durable <em>backend</em> for it, plus an extraction service no in-process library offers.</p>
+</div>
+
+<div class="diagram">
+  <div class="flow">
+    <div class="node"><b>each turn</b><small>user ⇄ agent exchange</small></div>
+    <div class="arrow">──▶</div>
+    <div class="node"><b>write 1 · checkpoint</b><small>serialized graph state (blob)<br>STM — exact replay per thread</small></div>
+    <div class="arrow">and</div>
+    <div class="node"><b>write 2 · transcript</b><small>plain USER/ASSISTANT event<br>with <span class="mono">eventTimestamp</span></small></div>
+    <div class="arrow">──▶</div>
+    <div class="node hl"><b>async extraction</b><small>USER_PREFERENCE strategy<br>files notes → <span class="mono">/users/{actorId}</span></small></div>
+  </div>
+</div>
+
+<div class="prose">
+<p>Read side, per request: fetch this user's notes by relevance (<code>retrieve_memory_records</code>), inject as a system message, invoke the graph with <code>thread_id</code> (the conversation) and <code>actor_id</code> (the user).</p>
+<ul>
+  <li><span class="chip ok">VERIFIED</span> STM survives process death and microVM boundaries — conversation recalled across cloud sessions.</li>
+  <li><span class="chip ok">VERIFIED</span> LTM crosses conversations — "prefers Celsius" taught in one thread converted 72°F→22°C in a brand-new thread; a control user still got Fahrenheit.</li>
+  <li><span class="chip ok">VERIFIED</span> Extraction is asynchronous (~2 min) and processes only <em>conversational</em> events. Checkpointer blobs are invisible to it — hence the double-write. This is a real integration gap, not a design choice you'd make freely.</li>
+</ul>
+<div class="callout warn">
+  <span class="lab">Design note</span>
+  <p>The same conversation is stored twice, in two formats. An agent built directly on the Memory API (e.g. Strands without a checkpointer) writes only conversational events and uses them for both replay and extraction. The double-write is the price of LangGraph's checkpointer snapshotting its own state format. Budget for it or choose accordingly.</p>
+</div>
+
+<h2><span class="num">06</span>Tutorial habits that don't survive production</h2>
+<ul>
+  <li><span class="chip bad">ANTI-PATTERN</span> <b>Hand-run setup scripts.</b> Anything a person runs once against the control plane is invisible drift. Promote it to declared config.</li>
+  <li><span class="chip bad">ANTI-PATTERN</span> <b>Auto-created IAM roles.</b> The toolkit's execution role is broad by design. Production declares a least-privilege role: <code>bedrock:InvokeModel</code> on named models, the memory ARN, its own log group — nothing else. <em>(Still open debt in this build.)</em></li>
+  <li><span class="chip bad">ANTI-PATTERN</span> <b>Swallowing infrastructure exceptions.</b> Our <code>try/except: pass</code> around memory writes turned a missing required parameter into a ten-minute mystery. Degrade gracefully, but log every suppressed failure.</li>
+  <li><span class="chip warn">DEV-ONLY</span> <b>Zip (direct code) deploys.</b> Dependencies resolved on a laptop at deploy time. Fine for sandboxes; prod promotes a digest-pinned image.</li>
+  <li><span class="chip warn">DEV-ONLY</span> <b>CLI invocation.</b> See §04 — the payload contract isn't honored.</li>
+  <li><span class="chip warn">DEV-ONLY</span> <b>Config clicked into consoles or UIs.</b> Reproducible systems have no memory of hands.</li>
+  <li><span class="chip warn">DEV-ONLY</span> <b>In-process memory (<code>MemorySaver</code>).</b> Every tutorial's default. State dies with the microVM; in production it's an illusion of memory.</li>
+</ul>
+
+<h2><span class="num">07</span>Open debt in this build</h2>
+<p>Honest gaps between this system and one you'd sign off for production traffic:</p>
+<ul>
+  <li><b>Least-privilege execution role</b>, declared in the stack (currently the toolkit's broad auto-created role).</li>
+  <li><b>Environment promotion</b> — one environment exists; test/nonprod/prod with the same declared config and per-env variables is designed (§03) but not stood up.</li>
+  <li><b>Caller authorization design</b> — IAM works; a real product decides between IAM and OAuth on the endpoint deliberately.</li>
+  <li><b>Observability pass</b> — logs and OTEL ship, but X-Ray trace delivery needs an account-level destination fix, and nobody has read the dashboards in anger yet.</li>
+  <li><b>Real tool</b> — <code>get_weather</code> is a stub; a live API brings egress, secrets, and failure handling into scope.</li>
+</ul>
+
+<h2><span class="num">08</span>Verification log</h2>
+</div>
+
+<div class="tablewrap"><table>
+  <tr><th>Claim</th><th>Experiment</th><th>Date</th></tr>
+  <tr><td>Any-framework promise is real</td><td>LangGraph agent deployed unmodified; platform saw only HTTP</td><td class="mono">2026-09-13</td></tr>
+  <tr><td>STM survives process death</td><td>Taught in process A, killed it, recalled in process B</td><td class="mono">2026-09-13</td></tr>
+  <tr><td>STM crosses cloud sessions</td><td>Recall across distinct <code>runtimeSessionId</code>s (distinct microVMs)</td><td class="mono">2026-09-13</td></tr>
+  <tr><td>CLI drops custom payload fields</td><td>Memory actor list showed session IDs where user IDs belonged</td><td class="mono">2026-09-19</td></tr>
+  <tr><td>LTM extraction requires conversational events</td><td>Blob-only writes produced no notes in 10 min; text events produced one in ~2 min</td><td class="mono">2026-09-19</td></tr>
+  <tr><td>LTM crosses conversations, isolated per user</td><td>priya: 22°C in fresh threads; control user: 72°F</td><td class="mono">2026-09-19</td></tr>
+  <tr><td>System reproducible from repo</td><td>Strategy deleted, redeclared in config, recreated by deploy, re-verified end to end</td><td class="mono">2026-09-19</td></tr>
+</table></div>
+
+<div class="prose">
+<div class="verdict">
+  <p><b>The sentence this document earns:</b></p>
+  <p>“Every resource this agent needs — runtime, memory, extraction strategies, roles — is declared in one repository, created by one deploy command, and each memory behavior claimed here was demonstrated on the live system, twice: once by hand-wired shortcut, and once the reproducible way after we tore the shortcut out.”</p>
+</div>
+</div>
+
+<footer>
+  weather_agent-G8Ad2iCvn7 · AgentCore-weatheragent-default · us-east-1 · account 8219-5166-0738 · reference compiled 2026-09-19
+</footer>
+</div>

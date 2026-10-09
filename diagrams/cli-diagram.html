@@ -1,0 +1,269 @@
+<title>CLI Lifecycle Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #F2F4F4; --panel: #FBFCFC; --ink: #1B2422; --soft: #4C5A57;
+    --faint: #7E8C89; --line: #D5DBDA;
+    --accent: #1F6E63;          /* teal — the CLI identity (kept from the old chapter) */
+    --accent-soft: #DCEBE8;
+    --local: #3D549E;           /* blue — your laptop / your code */
+    --local-soft: #DFE4F4;
+    --cloud: #9A5A18;           /* amber — AWS resources deploy creates */
+    --cloud-soft: #F4E7D3;
+    --harness: #B4531F;         /* terracotta — the harness path (its chapter's color) */
+    --harness-soft: #F4E0D4;
+    --code-bg: #17201E; --code-ink: #E2E9E7; --code-key: #7FCABC;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101716; --panel: #182120; --ink: #E3EAE8; --soft: #A3B2AF;
+      --faint: #71807D; --line: #28332F;
+      --accent: #5FBFB0; --accent-soft: #12312C;
+      --local: #8A97E6; --local-soft: #1E2340;
+      --cloud: #D9A05C; --cloud-soft: #322414;
+      --harness: #E28A57; --harness-soft: #3A251A;
+      --code-bg: #0C1211; --code-ink: #D8E0DE; --code-key: #8AD4C6;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #101716; --panel: #182120; --ink: #E3EAE8; --soft: #A3B2AF;
+    --faint: #71807D; --line: #28332F;
+    --accent: #5FBFB0; --accent-soft: #12312C;
+    --local: #8A97E6; --local-soft: #1E2340;
+    --cloud: #D9A05C; --cloud-soft: #322414;
+    --harness: #E28A57; --harness-soft: #3A251A;
+    --code-bg: #0C1211; --code-ink: #D8E0DE; --code-key: #8AD4C6;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: "IBM Plex Sans", system-ui, sans-serif; line-height: 1.6; font-size: 16px; }
+  .wrap { max-width: 940px; margin: 0 auto; padding: 56px 24px 80px; }
+  .eyebrow { font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+  h1 { font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: clamp(30px, 5vw, 44px); line-height: 1.08; letter-spacing: -.01em; margin: 8px 0 10px; text-wrap: balance; }
+  .lede { color: var(--soft); font-size: 18px; max-width: 680px; margin: 0 0 8px; }
+  .lede code, .sub code { font-family: "IBM Plex Mono", monospace; font-size: .85em; background: var(--accent-soft); padding: 1px 6px; border-radius: 3px; }
+  h2 { font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 24px; margin: 56px 0 4px; letter-spacing: -.01em; }
+  .sub { color: var(--faint); font-size: 14px; margin: 0 0 20px; }
+  figure { margin: 0; } figure svg { display: block; width: 100%; height: auto; min-width: 720px; }
+  figcaption { color: var(--faint); font-size: 13px; margin-top: 12px; text-align: center; font-style: italic; }
+  .scroll { overflow-x: auto; }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 18px 0 0; font-size: 13.5px; color: var(--soft); }
+  .legend span { display: inline-flex; align-items: center; gap: 8px; }
+  .sw { width: 14px; height: 14px; border-radius: 3px; flex: none; border: 1px solid rgba(0,0,0,.15); }
+  .callout { border-left: 3px solid var(--accent); background: var(--panel); padding: 14px 20px; margin: 22px 0 0; }
+  .callout.warn { border-left-color: var(--cloud); }
+  .callout .lab { font-family: "IBM Plex Mono", monospace; font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); display: block; margin-bottom: 4px; }
+  .callout p { margin: 0; font-size: 14.5px; }
+  .callout code { font-family: "IBM Plex Mono", monospace; font-size: .85em; }
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">Chapter 2 · The CLI</div>
+  <h1>One tool, both paths</h1>
+  <p class="lede">The AgentCore CLI drives the whole lifecycle — scaffold, run locally, deploy, invoke — for a config-based harness or a code-based agent alike. Everything here verified hands-on with <code>@aws/agentcore 0.29.0</code>, Sep 21 2026.</p>
+
+  <h2>The fork is the first question</h2>
+  <p class="sub"><code>agentcore create</code> opens with the choice the next two episodes walk through — then each path has its own set of decisions before anything lands on disk.</p>
+  <div class="scroll"><figure>
+    <svg viewBox="0 0 900 742" role="img" aria-label="agentcore create asks what to build. The Harness path declares a model, tools of five types, a memory mode, and optional loop settings, producing harness.json plus system-prompt.md that AWS runs. The Agent path asks for a framework, whether to generate code, a model provider, memory, a build type, and optional advanced settings, producing a runnable generated agent under app/. Skip produces only the empty project frame.">
+      <defs>
+        <marker id="at" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto"><polygon points="0,0 9,4 0,8" fill="var(--accent)"/></marker>
+        <marker id="ah" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto"><polygon points="0,0 9,4 0,8" fill="var(--harness)"/></marker>
+        <marker id="al" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto"><polygon points="0,0 9,4 0,8" fill="var(--local)"/></marker>
+        <marker id="af" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto"><polygon points="0,0 9,4 0,8" fill="var(--faint)"/></marker>
+      </defs>
+      <!-- terminal -->
+      <rect x="20" y="28" width="180" height="72" rx="8" fill="var(--code-bg)"/>
+      <text x="40" y="58" font-family="IBM Plex Mono, monospace" font-size="12.5" font-weight="600" fill="var(--code-key)">$ agentcore create</text>
+      <text x="40" y="80" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--code-ink)">Project: starter</text>
+      <line x1="200" y1="64" x2="252" y2="64" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#at)"/>
+      <!-- wizard -->
+      <rect x="256" y="14" width="220" height="100" rx="8" fill="var(--accent-soft)" stroke="var(--accent)"/>
+      <text x="276" y="40" font-family="IBM Plex Sans" font-size="12.5" font-weight="600" fill="var(--accent)">What would you like to build?</text>
+      <text x="276" y="62" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--ink)">› Harness (recommended)</text>
+      <text x="276" y="80" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--ink)">  Agent</text>
+      <text x="276" y="98" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--ink)">  Skip</text>
+      <!-- skip stub top-right -->
+      <line x1="476" y1="64" x2="536" y2="64" stroke="var(--faint)" stroke-width="1.5" marker-end="url(#af)"/>
+      <rect x="540" y="28" width="340" height="72" rx="8" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="558" y="52" font-family="IBM Plex Sans" font-size="12" font-weight="600" fill="var(--soft)">Skip — the empty frame</text>
+      <text x="558" y="72" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--ink)">manifest + CDK, no app/ at all · code later</text>
+      <text x="558" y="90" font-family="IBM Plex Sans" font-size="11" fill="var(--soft)">(validate stays green — config-level only)</text>
+      <!-- branch arrows down -->
+      <line x1="320" y1="114" x2="226" y2="152" stroke="var(--harness)" stroke-width="1.5" marker-end="url(#ah)"/>
+      <line x1="420" y1="114" x2="672" y2="152" stroke="var(--local)" stroke-width="1.5" marker-end="url(#al)"/>
+      <!-- HARNESS COLUMN -->
+      <rect x="20" y="158" width="410" height="500" rx="10" fill="var(--harness-soft)" stroke="var(--harness)"/>
+      <text x="40" y="188" font-family="IBM Plex Sans" font-size="13.5" font-weight="600" fill="var(--harness)">Harness — you declare, AWS runs the loop</text>
+      <rect x="40" y="204" width="370" height="58" rx="6" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="56" y="226" font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="600" fill="var(--harness)">model</text>
+      <text x="56" y="248" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--ink)">provider: bedrock · anthropic · openai · lite_llm</text>
+      <rect x="40" y="274" width="370" height="108" rx="6" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="56" y="296" font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="600" fill="var(--harness)">tools — five types</text>
+      <text x="56" y="318" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--ink)">code interpreter · browser  <tspan fill="var(--soft)">← built-in, AWS executes</tspan></text>
+      <text x="56" y="338" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--ink)">gateway · remote MCP  <tspan fill="var(--soft)">← your APIs / any server</tspan></text>
+      <text x="56" y="358" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--ink)">inline function  <tspan fill="var(--soft)">← declared only; caller executes</tspan></text>
+      <text x="56" y="376" font-family="IBM Plex Sans" font-size="10.5" font-style="italic" fill="var(--faint)">the who-executes boundary, in one list</text>
+      <rect x="40" y="394" width="370" height="58" rx="6" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="56" y="416" font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="600" fill="var(--harness)">memory</text>
+      <text x="56" y="438" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--ink)">managed · existing (by ARN) · disabled</text>
+      <rect x="40" y="464" width="370" height="58" rx="6" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="56" y="486" font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="600" fill="var(--harness)">loop settings — all optional</text>
+      <text x="56" y="508" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--ink)">maxIterations · maxTokens · timeout · authorizer</text>
+      <rect x="40" y="534" width="370" height="46" rx="6" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="56" y="556" font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="600" fill="var(--harness)">skills</text>
+      <text x="120" y="556" font-family="IBM Plex Sans" font-size="10.5" fill="var(--soft)">— packaged instructions + resources</text>
+      <line x1="225" y1="580" x2="225" y2="596" stroke="var(--harness)" stroke-width="1.5" marker-end="url(#ah)"/>
+      <rect x="40" y="600" width="370" height="44" rx="6" fill="var(--harness)" opacity="0.9"/>
+      <text x="56" y="627" font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="600" fill="var(--bg)">→ harness.json + system-prompt.md · zero Python</text>
+      <!-- AGENT COLUMN -->
+      <rect x="470" y="158" width="410" height="500" rx="10" fill="var(--local-soft)" stroke="var(--local)"/>
+      <text x="490" y="188" font-family="IBM Plex Sans" font-size="13.5" font-weight="600" fill="var(--local)">Agent — the wizard's questions, in order</text>
+      <rect x="490" y="204" width="370" height="58" rx="6" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="506" y="226" font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="600" fill="var(--local)">framework</text>
+      <text x="506" y="248" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--ink)">Strands · LangGraph · Google ADK · OpenAI Agents</text>
+      <rect x="490" y="274" width="370" height="58" rx="6" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="506" y="296" font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="600" fill="var(--local)">code</text>
+      <text x="506" y="318" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--ink)">generate a working template · add your own later</text>
+      <rect x="490" y="344" width="370" height="58" rx="6" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="506" y="366" font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="600" fill="var(--local)">model provider</text>
+      <text x="506" y="388" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--ink)">Bedrock (IAM, no keys) · Anthropic · OpenAI · Gemini</text>
+      <rect x="490" y="414" width="370" height="58" rx="6" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="506" y="436" font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="600" fill="var(--local)">memory</text>
+      <text x="506" y="458" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--ink)">none · short-term · long + short-term</text>
+      <rect x="490" y="484" width="370" height="58" rx="6" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="506" y="506" font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="600" fill="var(--local)">build</text>
+      <text x="506" y="528" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--ink)">CodeZip (zip → S3, no Docker) · Container (Docker)</text>
+      <rect x="490" y="554" width="370" height="46" rx="6" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="506" y="573" font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="600" fill="var(--local)">advanced — skip all of it</text>
+      <text x="506" y="591" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--ink)">VPC · JWT auth · timeouts · mounts · capacity</text>
+      <line x1="675" y1="600" x2="675" y2="614" stroke="var(--local)" stroke-width="1.5" marker-end="url(#al)"/>
+      <rect x="490" y="618" width="370" height="26" rx="6" fill="var(--local)" opacity="0.9"/>
+      <text x="506" y="636" font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="600" fill="var(--bg)">→ app/StarterAgent/ — runnable, zero edits</text>
+      <!-- next-episode tags -->
+      <text x="20" y="692" font-family="IBM Plex Sans" font-size="11.5" fill="var(--faint)">Harness path → next episode walks it end to end.</text>
+      <text x="470" y="692" font-family="IBM Plex Sans" font-size="11.5" fill="var(--faint)">Agent path → the SDK episode wraps your own framework code.</text>
+      <text x="20" y="722" font-family="IBM Plex Sans" font-size="11.5" font-style="italic" fill="var(--faint)">Left column: what harness.json declares (verified in the harness build). Right column: the wizard prompts as asked by CLI 0.29.0.</text>
+    </svg>
+    <figcaption>The fork, then each path's real decisions — config declarations on the left, wizard questions on the right, and defaults marked where they carry the demo.</figcaption>
+  </figure></div>
+
+  <h2>What lands on disk</h2>
+  <p class="sub">The generated project is two territories with a clean border — the folder listing <em>is</em> the Video&nbsp;1 architecture claim.</p>
+  <div class="scroll"><figure>
+    <svg viewBox="0 0 900 330" role="img" aria-label="The project splits into app/, which holds your agent code — main.py, model loader, MCP client, skills, dependencies — and agentcore/, which holds the tool's machinery: the resource manifest, deploy targets, a TypeScript CDK app, CLI state and traces, local secrets, and AI-assistant context files.">
+      <!-- yours -->
+      <rect x="20" y="30" width="420" height="270" rx="8" fill="var(--local-soft)" stroke="var(--local)"/>
+      <text x="40" y="58" font-family="IBM Plex Mono, monospace" font-size="13" font-weight="600" fill="var(--local)">app/StarterAgent/ — yours: the agent</text>
+      <text x="40" y="92" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--ink)">main.py</text>
+      <text x="196" y="92" font-family="IBM Plex Sans" font-size="11.5" fill="var(--soft)">Strands Agent · streaming entrypoint</text>
+      <text x="40" y="118" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--ink)">model/load.py</text>
+      <text x="196" y="118" font-family="IBM Plex Sans" font-size="11.5" fill="var(--soft)">Sonnet 4.5 on Bedrock, IAM creds</text>
+      <text x="40" y="144" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--ink)">mcp_client/</text>
+      <text x="196" y="144" font-family="IBM Plex Sans" font-size="11.5" fill="var(--soft)">wired to Exa web search (3rd party)</text>
+      <text x="40" y="170" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--ink)">skills/fetcher.py</text>
+      <text x="196" y="170" font-family="IBM Plex Sans" font-size="11.5" fill="var(--soft)">sample packaged skill</text>
+      <text x="40" y="196" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--ink)">pyproject.toml · uv.lock</text>
+      <text x="236" y="196" font-family="IBM Plex Sans" font-size="11.5" fill="var(--soft)">pinned dependencies</text>
+      <rect x="40" y="218" width="380" height="58" rx="6" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="56" y="242" font-family="IBM Plex Sans" font-size="11.5" fill="var(--soft)">A real agent, not a stub: tool calling, sessions,</text>
+      <text x="56" y="260" font-family="IBM Plex Sans" font-size="11.5" fill="var(--soft)">streaming — swap its tools and it's your product.</text>
+      <!-- the tool's -->
+      <rect x="480" y="30" width="400" height="270" rx="8" fill="var(--accent-soft)" stroke="var(--accent)"/>
+      <text x="500" y="58" font-family="IBM Plex Mono, monospace" font-size="13" font-weight="600" fill="var(--accent)">agentcore/ — the tool's: the machinery</text>
+      <text x="500" y="92" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--ink)">agentcore.json</text>
+      <text x="646" y="92" font-family="IBM Plex Sans" font-size="11.5" fill="var(--soft)">manifest of every resource</text>
+      <text x="500" y="118" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--ink)">aws-targets.json</text>
+      <text x="646" y="118" font-family="IBM Plex Sans" font-size="11.5" fill="var(--soft)">which account &amp; region</text>
+      <text x="500" y="144" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--ink)">cdk/</text>
+      <text x="646" y="144" font-family="IBM Plex Sans" font-size="11.5" fill="var(--soft)">TypeScript CDK app — readable</text>
+      <text x="500" y="170" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--ink)">.cli/</text>
+      <text x="646" y="170" font-family="IBM Plex Sans" font-size="11.5" fill="var(--soft)">logs · deployed-state · OTLP traces</text>
+      <text x="500" y="196" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--ink)">.env.local</text>
+      <text x="646" y="196" font-family="IBM Plex Sans" font-size="11.5" fill="var(--soft)">secrets, git-ignored</text>
+      <text x="500" y="222" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--ink)">.llm-context/ + AGENTS.md</text>
+      <text x="720" y="222" font-family="IBM Plex Sans" font-size="11.5" fill="var(--soft)">for AI assistants</text>
+      <rect x="500" y="240" width="360" height="42" rx="6" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="516" y="266" font-family="IBM Plex Sans" font-size="11.5" fill="var(--soft)">Deploy is not magic: <tspan font-family="IBM Plex Mono, monospace">cdk/</tspan> is exactly what runs.</text>
+    </svg>
+    <figcaption>Left folder: you build the agent. Right folder: the platform runs it. The border between them is the whole product thesis.</figcaption>
+  </figure></div>
+
+  <h2>The lifecycle crosses one boundary</h2>
+  <p class="sub"><code>dev</code> stays on your laptop, <code>deploy</code> creates the cloud twin, <code>invoke</code> talks to it. One honest wrinkle: even local dev calls Bedrock for the model.</p>
+  <div class="scroll"><figure>
+    <svg viewBox="0 0 900 440" role="img" aria-label="On the laptop, agentcore dev runs a local server with a browser inspector and hot reload, writing OTLP traces to disk; its model calls already reach Amazon Bedrock. agentcore deploy synthesizes the CDK app into a CloudFormation stack creating the Runtime with an endpoint, an S3 CodeZip artifact, an IAM execution role, and CloudWatch observability. agentcore invoke then calls the Runtime endpoint over the data plane.">
+      <defs>
+        <marker id="lt" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto"><polygon points="0,0 9,4 0,8" fill="var(--accent)"/></marker>
+        <marker id="lc" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto"><polygon points="0,0 9,4 0,8" fill="var(--cloud)"/></marker>
+        <marker id="lf" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto"><polygon points="0,0 9,4 0,8" fill="var(--faint)"/></marker>
+      </defs>
+      <!-- regions -->
+      <text x="20" y="28" font-family="IBM Plex Mono, monospace" font-size="12" font-weight="600" letter-spacing="2" fill="var(--local)">YOUR LAPTOP</text>
+      <text x="520" y="28" font-family="IBM Plex Mono, monospace" font-size="12" font-weight="600" letter-spacing="2" fill="var(--cloud)">YOUR AWS ACCOUNT</text>
+      <line x1="480" y1="14" x2="480" y2="430" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="6 5"/>
+      <!-- code -->
+      <rect x="20" y="52" width="200" height="56" rx="8" fill="var(--local-soft)" stroke="var(--local)"/>
+      <text x="38" y="76" font-family="IBM Plex Mono, monospace" font-size="12" font-weight="600" fill="var(--local)">app/ code</text>
+      <text x="38" y="96" font-family="IBM Plex Sans" font-size="11" fill="var(--soft)">edit freely — hot reload</text>
+      <line x1="120" y1="108" x2="120" y2="148" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#lt)"/>
+      <text x="132" y="134" font-family="IBM Plex Sans" font-size="11" fill="var(--faint)">picked up automatically</text>
+      <!-- dev -->
+      <rect x="20" y="152" width="260" height="92" rx="8" fill="var(--accent-soft)" stroke="var(--accent)"/>
+      <text x="38" y="178" font-family="IBM Plex Mono, monospace" font-size="12.5" font-weight="600" fill="var(--accent)">$ agentcore dev</text>
+      <text x="38" y="200" font-family="IBM Plex Sans" font-size="11.5" fill="var(--ink)">local server :8080 · inspector :8081</text>
+      <text x="38" y="220" font-family="IBM Plex Sans" font-size="11.5" fill="var(--soft)">chat · timeline · tokens · "Local only"</text>
+      <line x1="150" y1="244" x2="150" y2="282" stroke="var(--faint)" stroke-width="1.5" marker-end="url(#lf)"/>
+      <text x="162" y="270" font-family="IBM Plex Sans" font-size="11" fill="var(--faint)">writes every interaction</text>
+      <rect x="20" y="286" width="260" height="46" rx="8" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="38" y="314" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--soft)">.cli/traces/otlp/*.otlp.jsonl</text>
+      <!-- bedrock -->
+      <rect x="680" y="52" width="200" height="66" rx="8" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="698" y="78" font-family="IBM Plex Sans" font-size="12.5" font-weight="600" fill="var(--ink)">Amazon Bedrock</text>
+      <text x="698" y="98" font-family="IBM Plex Sans" font-size="11.5" fill="var(--soft)">Claude Sonnet 4.5</text>
+      <line x1="280" y1="180" x2="676" y2="90" stroke="var(--faint)" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#lf)"/>
+      <text x="330" y="128" font-family="IBM Plex Sans" font-size="11.5" font-style="italic" fill="var(--faint)">model calls — even in local dev</text>
+      <!-- deploy -->
+      <line x1="280" y1="212" x2="506" y2="212" stroke="var(--cloud)" stroke-width="2" marker-end="url(#lc)"/>
+      <text x="292" y="200" font-family="IBM Plex Mono, monospace" font-size="12" font-weight="600" fill="var(--cloud)">$ agentcore deploy</text>
+      <text x="292" y="232" font-family="IBM Plex Sans" font-size="11" fill="var(--faint)">CDK synth → CloudFormation</text>
+      <!-- stack -->
+      <rect x="510" y="150" width="370" height="200" rx="8" fill="var(--cloud-soft)" stroke="var(--cloud)"/>
+      <text x="528" y="176" font-family="IBM Plex Sans" font-size="12.5" font-weight="600" fill="var(--cloud)">CloudFormation stack — the cloud twin</text>
+      <rect x="528" y="190" width="160" height="64" rx="6" fill="var(--panel)" stroke="var(--cloud)" stroke-width="1.5"/>
+      <text x="544" y="214" font-family="IBM Plex Sans" font-size="12" font-weight="600" fill="var(--ink)">AgentCore Runtime</text>
+      <text x="544" y="234" font-family="IBM Plex Sans" font-size="11" fill="var(--soft)">+ invocable endpoint</text>
+      <rect x="704" y="190" width="160" height="64" rx="6" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="720" y="214" font-family="IBM Plex Sans" font-size="12" font-weight="600" fill="var(--ink)">S3 artifact</text>
+      <text x="720" y="234" font-family="IBM Plex Sans" font-size="11" fill="var(--soft)">CodeZip — no Docker</text>
+      <rect x="528" y="266" width="160" height="64" rx="6" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="544" y="290" font-family="IBM Plex Sans" font-size="12" font-weight="600" fill="var(--ink)">IAM exec role</text>
+      <text x="544" y="310" font-family="IBM Plex Sans" font-size="11" fill="var(--soft)">agent's own identity</text>
+      <rect x="704" y="266" width="160" height="64" rx="6" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="720" y="290" font-family="IBM Plex Sans" font-size="12" font-weight="600" fill="var(--ink)">CloudWatch</text>
+      <text x="720" y="310" font-family="IBM Plex Sans" font-size="11" fill="var(--soft)">logs · traces · metrics</text>
+      <!-- invoke -->
+      <rect x="20" y="376" width="260" height="48" rx="8" fill="var(--code-bg)"/>
+      <text x="38" y="405" font-family="IBM Plex Mono, monospace" font-size="12" font-weight="600" fill="var(--code-key)">$ agentcore invoke --prompt "…"</text>
+      <line x1="280" y1="400" x2="604" y2="260" stroke="var(--accent)" stroke-width="2" marker-end="url(#lt)"/>
+      <text x="330" y="368" font-family="IBM Plex Sans" font-size="11.5" fill="var(--accent)">data plane → Runtime endpoint · session resumes with --session-id</text>
+    </svg>
+    <figcaption>Same code, two homes: the inspector's "Not deployed" badge is the only gap, and <code>deploy</code> is the command that closes it.</figcaption>
+  </figure></div>
+
+  <div class="legend">
+    <span><i class="sw" style="background: var(--accent-soft); border-color: var(--accent);"></i>the CLI &amp; what it runs</span>
+    <span><i class="sw" style="background: var(--local-soft); border-color: var(--local);"></i>your code / your laptop</span>
+    <span><i class="sw" style="background: var(--cloud-soft); border-color: var(--cloud);"></i>AWS resources deploy creates</span>
+    <span><i class="sw" style="background: var(--harness-soft); border-color: var(--harness);"></i>the harness path (next episode)</span>
+  </div>
+
+  <div class="callout">
+    <span class="lab">The starter agent is real</span>
+    <p>The generated agent is Claude Sonnet 4.5 on Bedrock with tool calling, streaming, and per-session history — plus an example MCP client pre-wired to <code>mcp.exa.ai</code> (Exa web search, no auth). That last one means demo prompts that trigger search <em>leave AWS for a third party</em> — fine, as long as you say it.</p>
+  </div>
+  <div class="callout warn">
+    <span class="lab">Prototype tool, not delivery pipeline</span>
+    <p><code>deploy</code> runs CDK from your laptop with your credentials — perfect for the dev loop, not how a team ships. Production keeps the <code>app/</code> code verbatim and replaces the deploy mechanism with CI/CD (their own CDK or Terraform). You keep the agent; you swap the launcher.</p>
+  </div>
+</div>

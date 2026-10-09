@@ -1,0 +1,311 @@
+<title>The Memory Boundary</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #F5F3EE;
+    --panel: #FBFAF6;
+    --ink: #23201A;
+    --soft: #5C574C;
+    --faint: #8A8375;
+    --line: #D9D3C6;
+    --accent: #B4531F;          /* terracotta — series accent */
+    --accent-soft: #F0E0D3;
+    --managed: #2E6B4F;         /* green — AgentCore manages it */
+    --managed-soft: #DCEBE1;
+    --shared: #9A6B1F;          /* amber — straddles the boundary */
+    --shared-soft: #F1E6CE;
+    --code-bg: #211E18;
+    --code-ink: #E5DFD2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #17150F; --panel: #201D16; --ink: #ECE7DA; --soft: #B3AB99;
+      --faint: #857D6C; --line: #34301F; --accent: #E28A57; --accent-soft: #3A251A;
+      --managed: #6FBE92; --managed-soft: #1D2E24; --shared: #D6AB63; --shared-soft: #2E2618;
+      --code-bg: #100E0A; --code-ink: #DAD3C4;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #17150F; --panel: #201D16; --ink: #ECE7DA; --soft: #B3AB99;
+    --faint: #857D6C; --line: #34301F; --accent: #E28A57; --accent-soft: #3A251A;
+    --managed: #6FBE92; --managed-soft: #1D2E24; --shared: #D6AB63; --shared-soft: #2E2618;
+    --code-bg: #100E0A; --code-ink: #DAD3C4;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif; line-height: 1.6; font-size: 16px;
+  }
+  .wrap { max-width: 940px; margin: 0 auto; padding: 56px 24px 80px; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--accent); font-weight: 600;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 600;
+    font-size: clamp(30px, 5vw, 44px); line-height: 1.08; letter-spacing: -.01em;
+    margin: 8px 0 10px; text-wrap: balance;
+  }
+  .lede { color: var(--soft); font-size: 18px; max-width: 660px; margin: 0 0 28px; }
+  .lede code, p code {
+    font-family: "IBM Plex Mono", monospace; font-size: .85em;
+    background: var(--accent-soft); color: var(--ink); padding: 1px 6px; border-radius: 3px;
+  }
+  h2 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 24px;
+    margin: 56px 0 4px; letter-spacing: -.01em;
+  }
+  .sub { color: var(--faint); font-size: 14px; margin: 0 0 20px; }
+  figure { margin: 0 0 8px; }
+  figure svg { display: block; width: 100%; height: auto; }
+  figcaption { color: var(--faint); font-size: 13.5px; max-width: 660px; margin: 10px auto 0; text-align: center; }
+  .caps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin: 14px 0 0; }
+  .caps.two { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 720px) { .caps, .caps.two { grid-template-columns: 1fr; } }
+  .caps p { margin: 0; font-size: 13.5px; color: var(--soft); line-height: 1.55; }
+  .caps p b {
+    display: block; font-family: "IBM Plex Mono", monospace; font-size: 10.5px;
+    letter-spacing: .12em; text-transform: uppercase; color: var(--accent);
+    font-weight: 600; margin-bottom: 3px;
+  }
+  .legend {
+    display: flex; gap: 22px; flex-wrap: wrap; margin: 0 0 14px;
+    font-size: 12.5px; color: var(--soft);
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+  .file {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    overflow: hidden; max-width: 560px; margin: 0 auto;
+  }
+  .files { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 760px) { .files { grid-template-columns: 1fr; } }
+  .files .file { max-width: none; margin: 0; display: flex; flex-direction: column; }
+  .files .file pre { flex: 1; }
+  .file pre s { text-decoration: none; color: var(--faint); }
+  .file .fname {
+    font-family: "IBM Plex Mono", monospace; font-size: 12px; font-weight: 600;
+    color: var(--accent); padding: 10px 16px; border-bottom: 1px solid var(--line);
+  }
+  .file .fname span { color: var(--faint); font-weight: 400; margin-left: 8px; }
+  .file pre {
+    margin: 0; padding: 14px 16px; background: var(--code-bg); color: var(--code-ink);
+    font-family: "IBM Plex Mono", monospace; font-size: 11.5px; line-height: 1.6;
+    overflow-x: auto;
+  }
+  .file pre em { font-style: normal; color: var(--managed); }
+  .file .fsay { padding: 12px 16px; font-size: 13.5px; color: var(--soft); border-top: 1px solid var(--line); }
+  .money {
+    margin: 40px 0 0; background: var(--code-bg); color: var(--code-ink);
+    border-radius: 10px; padding: 22px 26px;
+  }
+  .money .eyebrow { color: var(--managed); }
+  .money p { margin: 6px 0 0; font-size: 16.5px; line-height: 1.65; font-family: "Fraunces", Georgia, serif; }
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">Chapter 4 · Memory</div>
+  <h1>The Memory Boundary</h1>
+  <p class="lede">
+    One diagram, told twice. Cut&nbsp;1: everything memory asks of you when you build it yourself
+    with LangGraph. Cut&nbsp;2: the same boxes — and the responsibility boundary moving.
+  </p>
+
+  <h2>Cut 1 — What am I managing today?</h2>
+  <p class="sub">The DIY landscape. Every box on this figure is yours to build, configure, and operate.</p>
+
+  <figure>
+    <svg viewBox="0 0 920 400" role="img"
+         aria-label="Two columns of responsibilities when building memory yourself with LangGraph: short-term — state and thread id, a production checkpointer, context-window management, checkpoint inspection; long-term — a per-user store, deciding what is worth remembering, semantic retrieval, a production store.">
+      <defs>
+        <marker id="arr-d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--faint)"/>
+        </marker>
+      </defs>
+
+      <text x="285" y="34" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="2" fill="var(--faint)">SHORT-TERM · THE TAPE</text>
+      <text x="635" y="34" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="2" fill="var(--faint)">LONG-TERM · THE NOTES</text>
+
+      <!-- STM column -->
+      <rect x="130" y="52" width="310" height="58" rx="6" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="146" y="76" font-size="13" font-weight="600" fill="var(--ink)">State + thread_id</text>
+      <text x="146" y="96" font-size="10.5" fill="var(--soft)">the conversation, keyed by thread</text>
+      <line x1="285" y1="110" x2="285" y2="136" stroke="var(--faint)" stroke-width="1.5" marker-end="url(#arr-d)"/>
+
+      <rect x="130" y="140" width="310" height="58" rx="6" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="146" y="164" font-size="13" font-weight="600" fill="var(--ink)">Production checkpointer</text>
+      <text x="146" y="184" font-size="10.5" fill="var(--soft)">Postgres · Redis · Mongo saver — a DB you run</text>
+      <line x1="285" y1="198" x2="285" y2="224" stroke="var(--faint)" stroke-width="1.5" marker-end="url(#arr-d)"/>
+
+      <rect x="130" y="228" width="310" height="58" rx="6" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="146" y="252" font-size="13" font-weight="600" fill="var(--ink)">Manage the context window</text>
+      <text x="146" y="272" font-size="10.5" fill="var(--soft)">trim · summarize — what the model actually sees</text>
+      <line x1="285" y1="286" x2="285" y2="312" stroke="var(--faint)" stroke-width="1.5" marker-end="url(#arr-d)"/>
+
+      <rect x="130" y="316" width="310" height="58" rx="6" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="146" y="340" font-size="13" font-weight="600" fill="var(--ink)">Inspect &amp; manage checkpoints</text>
+      <text x="146" y="360" font-size="10.5" fill="var(--soft)">get_state · history · delete_thread</text>
+
+      <!-- LTM column -->
+      <rect x="480" y="52" width="310" height="58" rx="6" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="496" y="76" font-size="13" font-weight="600" fill="var(--ink)">Store, organized by namespace</text>
+      <text x="496" y="96" font-size="10.5" fill="var(--soft)">what's carried across sessions — not transcripts</text>
+      <line x1="635" y1="110" x2="635" y2="136" stroke="var(--faint)" stroke-width="1.5" marker-end="url(#arr-d)"/>
+
+      <rect x="480" y="140" width="310" height="58" rx="6" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.5"/>
+      <text x="496" y="164" font-size="13" font-weight="600" fill="var(--ink)">Decide what's worth remembering</text>
+      <text x="496" y="184" font-size="10.5" fill="var(--soft)">extraction — code you write, usually an LLM pipeline</text>
+      <line x1="635" y1="198" x2="635" y2="224" stroke="var(--faint)" stroke-width="1.5" marker-end="url(#arr-d)"/>
+
+      <rect x="480" y="228" width="310" height="58" rx="6" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="496" y="252" font-size="13" font-weight="600" fill="var(--ink)">Semantic retrieval</text>
+      <text x="496" y="272" font-size="10.5" fill="var(--soft)">embeddings index + search over stored memories</text>
+      <line x1="635" y1="286" x2="635" y2="312" stroke="var(--faint)" stroke-width="1.5" marker-end="url(#arr-d)"/>
+
+      <rect x="480" y="316" width="310" height="58" rx="6" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="496" y="340" font-size="13" font-weight="600" fill="var(--ink)">Production store</text>
+      <text x="496" y="360" font-size="10.5" fill="var(--soft)">PostgresStore · RedisStore — another DB you run</text>
+    </svg>
+    <figcaption>
+      Cut 1 — the problem space. The outlined box is the one most diagrams forget:
+      long-term memory isn't just storage, it's deciding what's worth keeping.
+    </figcaption>
+  </figure>
+
+  <div class="caps">
+    <p><b>Say — short-term</b>"For short-term memory I have my LangGraph state and thread id.
+       I need a production checkpointer. I need to manage the context window. And I have APIs
+       for inspecting those checkpoints."</p>
+    <p><b>Say — long-term</b>"Long-term memory is what your agent carries across sessions. Not the
+       transcripts — the things worth remembering: preferences, facts, past decisions. So: a store
+       organized by namespace, a decision about what's worth keeping, and a way to retrieve it
+       later — typically semantic search."</p>
+    <p><b>Say — the zoom</b>"And notice: long-term memory isn't just storage. If a customer says
+       'I normally drink an oat-milk latte, extra hot,' I don't want to replay the conversation —
+       I want the useful fact: <em>this customer prefers an oat-milk latte, extra hot</em>."</p>
+  </div>
+
+  <h2>Cut 2 — What changes with AgentCore?</h2>
+  <p class="sub">The same boxes. Watch the responsibility boundary move — and what refuses to move.</p>
+
+  <div class="legend">
+    <span><i style="background:var(--panel); border:1px solid var(--line)"></i> stays yours</span>
+    <span><i style="background:var(--managed-soft); border:1px solid var(--managed)"></i> AgentCore manages</span>
+    <span><i style="background:var(--shared-soft); border:1px solid var(--shared)"></i> shared — straddles the boundary</span>
+  </div>
+
+  <figure>
+    <svg viewBox="0 0 920 420" role="img"
+         aria-label="The same two-column diagram as Cut 1, now color-coded per box: production checkpointer, per-user store, memory extraction with its four strategy types, semantic retrieval, and production store are green (AgentCore manages); state plus thread id and context management stay yours; checkpoint inspection is amber (shared). Side tags name each verdict.">
+      <defs>
+        <marker id="arr-m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--faint)"/>
+        </marker>
+      </defs>
+
+      <text x="285" y="34" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="2" fill="var(--faint)">SHORT-TERM · THE TAPE</text>
+      <text x="635" y="34" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="2" fill="var(--faint)">LONG-TERM · THE NOTES</text>
+
+      <!-- STM column -->
+      <rect x="130" y="52" width="310" height="58" rx="6" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="146" y="76" font-size="13" font-weight="600" fill="var(--ink)">State + thread_id ✓</text>
+      <text x="146" y="96" font-size="10.5" fill="var(--soft)">the conversation, keyed by thread — unchanged</text>
+      <text x="118" y="78" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10" font-weight="600" letter-spacing="1.5" fill="var(--faint)">YOURS</text>
+      <line x1="285" y1="110" x2="285" y2="136" stroke="var(--faint)" stroke-width="1.5" marker-end="url(#arr-m)"/>
+
+      <rect x="130" y="140" width="310" height="58" rx="6" fill="var(--managed-soft)"/>
+      <text x="146" y="164" font-size="13" font-weight="600" fill="var(--ink)">Production checkpointer</text>
+      <text x="146" y="184" font-size="10.5" fill="var(--soft)">AgentCoreMemorySaver — no database to run</text>
+      <text x="118" y="162" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10" font-weight="600" letter-spacing="1.5" fill="var(--managed)">MANAGED</text>
+      <text x="118" y="178" text-anchor="end" font-size="9.5" fill="var(--faint)">one line of code</text>
+      <line x1="285" y1="198" x2="285" y2="224" stroke="var(--faint)" stroke-width="1.5" marker-end="url(#arr-m)"/>
+
+      <rect x="130" y="228" width="310" height="58" rx="6" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.5"/>
+      <text x="146" y="252" font-size="13" font-weight="600" fill="var(--ink)">Manage the context window ✓</text>
+      <text x="146" y="272" font-size="10.5" fill="var(--soft)">trim · summarize — what the model sees is yours</text>
+      <text x="118" y="250" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10" font-weight="600" letter-spacing="1.5" fill="var(--accent)">STAYS</text>
+      <text x="118" y="266" text-anchor="end" font-size="9.5" fill="var(--faint)">memory ≠ context</text>
+      <line x1="285" y1="286" x2="285" y2="312" stroke="var(--faint)" stroke-width="1.5" marker-end="url(#arr-m)"/>
+
+      <rect x="130" y="316" width="310" height="58" rx="6" fill="var(--shared-soft)" stroke="var(--shared)"/>
+      <text x="146" y="340" font-size="13" font-weight="600" fill="var(--ink)">Inspect &amp; manage checkpoints</text>
+      <text x="146" y="360" font-size="10.5" fill="var(--soft)">same LangGraph APIs — plus native APIs &amp; console</text>
+      <text x="118" y="338" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10" font-weight="600" letter-spacing="1.5" fill="var(--shared)">SHARED</text>
+      <text x="118" y="354" text-anchor="end" font-size="9.5" fill="var(--faint)">two windows</text>
+
+      <!-- LTM column -->
+      <rect x="480" y="52" width="310" height="58" rx="6" fill="var(--managed-soft)"/>
+      <text x="496" y="76" font-size="13" font-weight="600" fill="var(--ink)">Store, organized by namespace</text>
+      <text x="496" y="96" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--soft)">/customers/{actorId}</text>
+      <text x="800" y="78" font-family="IBM Plex Mono, monospace" font-size="10" font-weight="600" letter-spacing="1.5" fill="var(--managed)">MANAGED</text>
+      <line x1="635" y1="110" x2="635" y2="136" stroke="var(--faint)" stroke-width="1.5" marker-end="url(#arr-m)"/>
+
+      <rect x="480" y="140" width="310" height="88" rx="6" fill="var(--managed-soft)" stroke="var(--managed)" stroke-width="1.5"/>
+      <text x="496" y="164" font-size="13" font-weight="600" fill="var(--ink)">Decide what's worth remembering</text>
+      <text x="496" y="184" font-size="10.5" fill="var(--soft)">a strategy distills the transcript — not your code</text>
+      <text x="496" y="205" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--managed)">USER_PREFERENCE ✓ · SEMANTIC</text>
+      <text x="496" y="221" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--managed)">SUMMARIZATION · EPISODIC</text>
+      <text x="800" y="166" font-family="IBM Plex Mono, monospace" font-size="10" font-weight="600" letter-spacing="1.5" fill="var(--managed)">MANAGED</text>
+      <text x="800" y="182" font-size="9.5" fill="var(--faint)">ten lines of JSON</text>
+      <line x1="635" y1="228" x2="635" y2="254" stroke="var(--faint)" stroke-width="1.5" marker-end="url(#arr-m)"/>
+
+      <rect x="480" y="258" width="310" height="58" rx="6" fill="var(--managed-soft)"/>
+      <text x="496" y="282" font-size="13" font-weight="600" fill="var(--ink)">Semantic retrieval</text>
+      <text x="496" y="302" font-size="10.5" fill="var(--soft)">search built in — no embeddings pipeline</text>
+      <text x="800" y="284" font-family="IBM Plex Mono, monospace" font-size="10" font-weight="600" letter-spacing="1.5" fill="var(--managed)">MANAGED</text>
+      <line x1="635" y1="316" x2="635" y2="342" stroke="var(--faint)" stroke-width="1.5" marker-end="url(#arr-m)"/>
+
+      <rect x="480" y="346" width="310" height="58" rx="6" fill="var(--managed-soft)"/>
+      <text x="496" y="370" font-size="13" font-weight="600" fill="var(--ink)">Production store</text>
+      <text x="496" y="390" font-size="10.5" fill="var(--soft)">no database — a managed service</text>
+      <text x="800" y="372" font-family="IBM Plex Mono, monospace" font-size="10" font-weight="600" letter-spacing="1.5" fill="var(--managed)">MANAGED</text>
+    </svg>
+    <figcaption>
+      Cut 2 — the same diagram, verdict per box: green moved to AgentCore, outlined boxes stay
+      yours, amber is shared. (In the video edit, the green boxes animate across to the right.)
+    </figcaption>
+  </figure>
+
+  <div class="caps two">
+    <p><b>Say — the move</b>"Now let's see what changes when I add AgentCore Memory. Persistence —
+       both databases — extraction, and retrieval move across. Moving the checkpointer is one line
+       of code; the extraction policy is ten lines of JSON. And notice what does <em>not</em> move:
+       context management. AgentCore remembers; what the model sees each turn is still my job."</p>
+    <p><b>Say — the amber</b>"The amber boxes are shared. Inspecting checkpoints: my LangGraph
+       code doesn't change — same get_state_history, same config — and I get AgentCore's APIs and
+       console as a second window. And long-term memory is a partnership: I write the transcript
+       in; AWS distills the notes — in the background, asynchronously."</p>
+  </div>
+
+  <h2>The config that moves the boundary</h2>
+  <p class="sub">Cut 2's "show the configuration briefly" beat — this block is what the choice becomes.</p>
+
+  <div class="file">
+    <div class="fname">agentcore/agentcore.json <span>— the whole long-term memory policy</span></div>
+    <pre>"memories": [{
+  "name": "barista_mem",
+  "eventExpiryDuration": 30,
+  "strategies": [{
+    "type": <em>"USER_PREFERENCE"</em>,
+    "name": "usual_order",
+    "description": "Extract each customer's usual
+                    coffee order from conversations",
+    "namespaces": [<em>"/customers/{actorId}"</em>]
+  }]
+}]</pre>
+    <div class="fsay">
+      <b style="display:block; font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); font-weight:600; margin-bottom:3px">Say</b>
+      "Ten lines. The strategy type is the editorial policy — what's worth remembering.
+      The namespace is the filing scheme — one drawer per customer. Behind this block stands
+      the entire right-hand column: the store, the extraction pipeline, the semantic index."
+    </div>
+  </div>
+
+  <div class="money">
+    <div class="eyebrow">The money shot — freeze here</div>
+    <p>"My LangGraph agent hasn't disappeared. It still owns the workflow, the state, and what
+       goes into the model. What I've moved to AgentCore is the infrastructure around memory —
+       and, for long-term memory, the distilling and retrieval of useful facts."</p>
+  </div>
+</div>

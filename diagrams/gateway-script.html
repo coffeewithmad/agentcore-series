@@ -1,0 +1,240 @@
+<title>Gateway Script</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #F5F3EE; --panel: #FBFAF6; --ink: #23201A; --soft: #5C574C;
+    --faint: #8A8375; --line: #D9D3C6;
+    --accent: #B4531F; --accent-soft: #F0E0D3;
+    --managed: #2E6B4F; --managed-soft: #DCEBE1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #17150F; --panel: #201D16; --ink: #ECE7DA; --soft: #B3AB99;
+      --faint: #857D6C; --line: #34301F; --accent: #E28A57; --accent-soft: #3A251A;
+      --managed: #6FBE92; --managed-soft: #1D2E24;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #17150F; --panel: #201D16; --ink: #ECE7DA; --soft: #B3AB99;
+    --faint: #857D6C; --line: #34301F; --accent: #E28A57; --accent-soft: #3A251A;
+    --managed: #6FBE92; --managed-soft: #1D2E24;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif; line-height: 1.6; font-size: 16px;
+  }
+  .wrap { max-width: 840px; margin: 0 auto; padding: 56px 24px 80px; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--accent); font-weight: 600;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 600;
+    font-size: clamp(30px, 5vw, 42px); line-height: 1.08; margin: 8px 0 32px;
+  }
+  .beat {
+    display: grid; grid-template-columns: 150px 1fr; gap: 4px 22px;
+    padding: 16px 0; border-top: 1px solid var(--line);
+  }
+  .beat:last-of-type { border-bottom: 1px solid var(--line); }
+  @media (max-width: 600px) { .beat { grid-template-columns: 1fr; } }
+  .beat .no {
+    font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--accent); font-weight: 600; padding-top: 4px;
+  }
+  .beat .say {
+    font-family: "Fraunces", Georgia, serif; font-size: 17px; line-height: 1.5; margin: 0 0 6px;
+  }
+  .beat .say:last-of-type { margin-bottom: 0; }
+  .beat .show {
+    font-size: 12.5px; color: var(--faint); margin: 6px 0 0;
+    font-family: "IBM Plex Mono", monospace;
+  }
+  figure { margin: 32px 0; }
+  figure svg { display: block; width: 100%; height: auto; }
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">Chapter 5 · Tools + Gateway / Identity</div>
+  <h1>Gateway Script</h1>
+
+  <div class="beat">
+    <div class="no">1 · Why Gateway exists</div>
+    <div>
+      <p class="say">"Let's say I'm using LangGraph to build my agents, and I already have some
+        existing services in AWS — say an Orders Lambda that can look up an order or cancel one."</p>
+      <p class="say">"Now I want to expose these capabilities to my agents using MCP."</p>
+      <p class="say">"I can absolutely build my own MCP server: register my tools, expose
+        tools/list so agents can discover them, handle tools/call so they can invoke them, connect
+        those calls to my Lambdas, secure the endpoint — and then I still have to host that MCP
+        server somewhere, maybe ECS or Lambda, and operate it. And on the other side, each of my
+        agents needs an MCP client wired in to talk to it."</p>
+      <p class="say">"Or I need something to manage that MCP layer for me. That's where AgentCore
+        Gateway comes in."</p>
+      <p class="show">camera → side-by-side diagram. Then DON'T explain the diagram. Move.</p>
+    </div>
+  </div>
+
+  <figure>
+    <svg viewBox="0 0 920 360" role="img"
+         aria-label="Side by side: build it yourself — LangGraph calls your MCP server, which you build and operate (MCP endpoint, tools/list, tools/call, auth, backend integration) in front of your Lambdas; versus AgentCore — LangGraph calls the managed Gateway providing the same layer in front of the same Lambdas.">
+      <defs>
+        <marker id="g1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--faint)"/>
+        </marker>
+      </defs>
+
+      <text x="250" y="30" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="2" fill="var(--faint)">BUILD IT YOURSELF</text>
+      <text x="670" y="30" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="2" fill="var(--faint)">AGENTCORE</text>
+
+      <rect x="160" y="44" width="180" height="40" rx="6" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="250" y="69" text-anchor="middle" font-size="13" fill="var(--ink)">LangGraph agent</text>
+      <rect x="580" y="44" width="180" height="40" rx="6" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="670" y="69" text-anchor="middle" font-size="13" fill="var(--ink)">LangGraph agent</text>
+
+      <line x1="250" y1="84" x2="250" y2="108" stroke="var(--faint)" stroke-width="1.5" marker-end="url(#g1)"/>
+      <line x1="670" y1="84" x2="670" y2="108" stroke="var(--faint)" stroke-width="1.5" marker-end="url(#g1)"/>
+
+      <rect x="130" y="112" width="240" height="138" rx="6" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+      <text x="250" y="136" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">YOUR MCP SERVER</text>
+      <text x="150" y="158" font-size="11.5" fill="var(--soft)">— MCP endpoint (you host it)</text>
+      <text x="150" y="176" font-size="11.5" fill="var(--soft)">— tools/list</text>
+      <text x="150" y="194" font-size="11.5" fill="var(--soft)">— tools/call</text>
+      <text x="150" y="212" font-size="11.5" fill="var(--soft)">— auth</text>
+      <text x="150" y="230" font-size="11.5" fill="var(--soft)">— backend integration</text>
+
+      <rect x="550" y="112" width="240" height="138" rx="6" fill="var(--managed-soft)" stroke="var(--managed)" stroke-width="1.5"/>
+      <text x="670" y="136" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">AGENTCORE GATEWAY</text>
+      <text x="570" y="158" font-size="11.5" fill="var(--soft)">— managed MCP endpoint</text>
+      <text x="570" y="176" font-size="11.5" fill="var(--soft)">— tool discovery</text>
+      <text x="570" y="194" font-size="11.5" fill="var(--soft)">— tool invocation</text>
+      <text x="570" y="212" font-size="11.5" fill="var(--soft)">— auth</text>
+      <text x="570" y="230" font-size="11.5" fill="var(--soft)">— target integration</text>
+
+      <line x1="250" y1="250" x2="250" y2="274" stroke="var(--faint)" stroke-width="1.5" marker-end="url(#g1)"/>
+      <line x1="670" y1="250" x2="670" y2="274" stroke="var(--faint)" stroke-width="1.5" marker-end="url(#g1)"/>
+
+      <rect x="160" y="278" width="180" height="40" rx="6" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="250" y="303" text-anchor="middle" font-size="13" fill="var(--ink)">Lambdas / APIs</text>
+      <rect x="580" y="278" width="180" height="40" rx="6" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="670" y="303" text-anchor="middle" font-size="13" fill="var(--ink)">Lambdas / APIs</text>
+
+      <text x="250" y="346" text-anchor="middle" font-size="11" fill="var(--accent)">you build and operate this</text>
+      <text x="670" y="346" text-anchor="middle" font-size="11" fill="var(--managed)">managed</text>
+    </svg>
+  </figure>
+
+  <div class="beat">
+    <div class="no">2 · What Gateway gives me</div>
+    <div>
+      <p class="say">"So instead of building and operating that MCP server myself, Gateway gives me
+        a managed MCP endpoint. I register my existing services as targets behind the Gateway,
+        describe the tools they expose, and my agents access those tools through MCP."</p>
+      <p class="say">"Let's look at a simple example."</p>
+      <p class="show">that's enough theory — cut to the example</p>
+    </div>
+  </div>
+
+  <div class="beat">
+    <div class="no">3 · The backend</div>
+    <div>
+      <p class="say">"I've built a very simple Order Helper. The agent can look up an order and
+        calculate how much refund the customer should receive."</p>
+      <p class="say">"This is my backend — just a Lambda with some hardcoded orders. Nothing
+        interesting here; in a real application this would call my order system."</p>
+      <p class="show">lambda/order_lookup.py — flash it, highlight the handler, MOVE. No Python walkthrough.</p>
+    </div>
+  </div>
+
+  <div class="beat">
+    <div class="no">4 · The tool schema</div>
+    <div>
+      <p class="say">"Now I need to tell Gateway what capability this Lambda exposes. I've defined
+        a tool called get_order — a description, and one input: order_id."</p>
+      <p class="say">"The description matters: it's what the model uses to understand what this
+        tool does."</p>
+      <p class="show">order_tool_schema.json — highlight ONLY: name · description · inputSchema.order_id. Move immediately.</p>
+    </div>
+  </div>
+
+  <div class="beat">
+    <div class="no">5 · Register it</div>
+    <div>
+      <p class="say">"Then in my Gateway configuration, I register the Lambda as a target."</p>
+      <p class="say">"So now Gateway knows two things: here's my implementation — the Lambda —
+        and here's how that capability should be exposed as a tool."</p>
+      <p class="show">agentcore.json — highlight: protocolType MCP · target order-lookup → Lambda ARN + tool schema</p>
+    </div>
+  </div>
+
+  <div class="beat">
+    <div class="no">6 · The agent</div>
+    <div>
+      <p class="say">"Now look at my agent. I've configured the AgentCore Gateway here. But notice
+        what's missing."</p>
+      <p class="say">"There is no get_order tool defined anywhere in my agent. My agent knows about
+        the Gateway. The Gateway knows about the tools."</p>
+      <p class="say">"And notice the second thing that's missing: there's no MCP client code
+        either. This one line asks the platform's agent loop to be the MCP client on my behalf —
+        connect to the gateway, authenticate with IAM, discover, call."</p>
+      <p class="say">"The agent has the phone number. It doesn't have the menu."</p>
+      <p class="say">"At session start, it asks — MCP's tools/list — and the menu comes back:
+        order-lookup___get_order."</p>
+      <p class="show">harness.json — slow down, pause after the phone-number line, then the
+        discovery line over the animated figure below.</p>
+    </div>
+  </div>
+
+  <figure>
+    <svg viewBox="0 0 920 230" role="img"
+         aria-label="Discovery: the Order Helper agent sends MCP tools/list to the Gateway, and the tool order-lookup___get_order comes back.">
+      <defs>
+        <marker id="g2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/>
+        </marker>
+        <marker id="g3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--managed)"/>
+        </marker>
+      </defs>
+      <rect x="120" y="80" width="200" height="60" rx="8" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+      <text x="220" y="106" text-anchor="middle" font-size="13.5" font-weight="600" fill="var(--ink)">ORDER HELPER</text>
+      <text x="220" y="126" text-anchor="middle" font-size="10.5" fill="var(--soft)">knows: the gateway</text>
+
+      <line x1="320" y1="96" x2="492" y2="96" stroke="var(--accent)" stroke-width="1.8" marker-end="url(#g2)"/>
+      <text x="406" y="84" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--accent)">MCP · tools/list</text>
+
+      <rect x="496" y="80" width="170" height="60" rx="8" fill="var(--managed-soft)" stroke="var(--managed)" stroke-width="1.5"/>
+      <text x="581" y="106" text-anchor="middle" font-size="13.5" font-weight="600" fill="var(--ink)">GATEWAY</text>
+      <text x="581" y="126" text-anchor="middle" font-size="10.5" fill="var(--soft)">knows: the tools</text>
+
+      <line x1="496" y1="124" x2="324" y2="124" stroke="var(--managed)" stroke-width="1.8" marker-end="url(#g3)"/>
+      <text x="410" y="152" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--managed)">order-lookup___get_order</text>
+      <text x="410" y="186" text-anchor="middle" font-size="11.5" fill="var(--faint)">get_order becomes available to the model — never defined inside the agent</text>
+    </svg>
+  </figure>
+
+  <div class="beat">
+    <div class="no">7 · Demo</div>
+    <div>
+      <p class="say">"Let's see if this actually works. — Can I get a refund for order 123?"</p>
+      <p class="say">"So the agent called get_order through the Gateway. My Lambda returned the
+        order — $48, purchased five days ago — and the agent used its Code Interpreter to
+        calculate the refund. Within 30 days: full $48 back."</p>
+      <p class="show">let it run; explain only what happened. Optional second ask: order 456 → $60, 50% restocking.</p>
+    </div>
+  </div>
+
+  <div class="beat">
+    <div class="no">8 · The receipt + close</div>
+    <div>
+      <p class="say">"And look at the trace — the tool name is order-lookup___get_order. Target,
+        then tool. The call went through the Gateway."</p>
+      <p class="say">"So that's Gateway: my Lambda, registered once, discovered over MCP, called
+        by an agent that holds no credentials and defines no tools. Next time: how you watch and
+        score what your agents are doing."</p>
+      <p class="show">trace view → camera. [Close completed by Claude — adjust to taste]</p>
+    </div>
+  </div>
+</div>

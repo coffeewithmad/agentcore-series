@@ -1,0 +1,232 @@
+<title>Barista Code Walk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #F5F3EE; --panel: #FBFAF6; --ink: #23201A; --soft: #5C574C;
+    --faint: #8A8375; --line: #D9D3C6;
+    --accent: #B4531F; --accent-soft: #F0E0D3;
+    --managed: #2E6B4F; --managed-soft: #DCEBE1;
+    --code-bg: #211E18; --code-ink: #E5DFD2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #17150F; --panel: #201D16; --ink: #ECE7DA; --soft: #B3AB99;
+      --faint: #857D6C; --line: #34301F; --accent: #E28A57; --accent-soft: #3A251A;
+      --managed: #6FBE92; --managed-soft: #1D2E24; --code-bg: #100E0A; --code-ink: #DAD3C4;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #17150F; --panel: #201D16; --ink: #ECE7DA; --soft: #B3AB99;
+    --faint: #857D6C; --line: #34301F; --accent: #E28A57; --accent-soft: #3A251A;
+    --managed: #6FBE92; --managed-soft: #1D2E24; --code-bg: #100E0A; --code-ink: #DAD3C4;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif; line-height: 1.6; font-size: 16px;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 56px 24px 80px; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--accent); font-weight: 600;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 600;
+    font-size: clamp(30px, 5vw, 44px); line-height: 1.08; letter-spacing: -.01em;
+    margin: 8px 0 10px; text-wrap: balance;
+  }
+  .lede { color: var(--soft); font-size: 18px; max-width: 640px; margin: 0 0 36px; }
+  .beat {
+    display: grid; grid-template-columns: 208px 1fr; gap: 4px 24px;
+    padding: 20px 0; border-top: 1px solid var(--line);
+  }
+  .beat:last-of-type { border-bottom: 1px solid var(--line); }
+  @media (max-width: 640px) { .beat { grid-template-columns: 1fr; } }
+  .beat .no {
+    font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--accent); font-weight: 600; padding-top: 4px;
+  }
+  .beat .anchor {
+    display: block; margin-top: 8px; font-family: "IBM Plex Mono", monospace;
+    font-size: 11px; letter-spacing: 0; text-transform: none; font-weight: 500;
+    color: var(--ink); background: var(--accent-soft); border-radius: 4px;
+    padding: 3px 8px; width: fit-content;
+  }
+  .beat .anchor + .anchor { margin-top: 5px; }
+  .beat .anchor.green { background: var(--managed-soft); }
+  .beat .say {
+    font-family: "Fraunces", Georgia, serif; font-size: 17.5px; line-height: 1.55;
+    margin: 0 0 8px; color: var(--ink);
+  }
+  .beat .say em { color: var(--accent); font-style: normal; }
+  .beat .note { font-size: 13px; color: var(--faint); margin: 0; }
+  .beat .note code, .say code {
+    font-family: "IBM Plex Mono", monospace; font-size: .82em;
+    background: var(--accent-soft); padding: 1px 5px; border-radius: 3px; color: var(--ink);
+  }
+  figure { margin: 36px 0; }
+  figure svg { display: block; width: 100%; height: auto; }
+  figcaption { color: var(--faint); font-size: 13.5px; max-width: 640px; margin: 10px auto 0; text-align: center; }
+  .stopcard {
+    margin: 36px 0 0; padding: 14px 18px; border-left: 3px solid var(--accent);
+    background: var(--panel); border-radius: 0 8px 8px 0; font-size: 14px; color: var(--soft);
+  }
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">Chapter 4 · Memory — Cut 3, part one</div>
+  <h1>Barista Code Walk</h1>
+  <p class="lede">
+    The seam, spoken slowly: what the agent is, how a tool round works, the graph as a picture —
+    then State, short-term, long-term. Line numbers verified 2026-09-29. The demo is a separate cut.
+  </p>
+
+  <div class="beat">
+    <div class="no">1 · The agent
+      <span class="anchor">barista_graph.py · 17–25</span>
+    </div>
+    <div>
+      <p class="say">"Meet my Barista. It's Haiku on Bedrock — line 17 — plus a job description,
+        lines 20 to 25: take coffee orders, keep it short, confirm warmly. And one more sentence:
+        <em>if a customer asks for 'the usual' and you've been told their usual, make it — if not,
+        cheerfully ask.</em> Hold onto that line. It's the hook the whole memory story hangs on."</p>
+      <p class="note">Highlight the SYSTEM string; read the "usual" clause aloud — it pays off in beat 7.</p>
+    </div>
+  </div>
+
+  <div class="beat">
+    <div class="no">2 · The tool
+      <span class="anchor">barista_graph.py · 33–36</span>
+      <span class="anchor">barista_graph.py · 39</span>
+    </div>
+    <div>
+      <p class="say">"It has exactly one tool: <code>make_drink</code>, lines 33 to 36 — it rings
+        up an order and says it'll be ready at the bar. And line 39, <code>bind_tools</code>, is
+        what tells the model this tool exists and what it takes. That's it — the model now knows
+        it <em>can</em> make drinks."</p>
+    </div>
+  </div>
+
+  <div class="beat">
+    <div class="no">3 · A question becomes a drink
+      <span class="anchor">barista_graph.py · 42–48</span>
+      <span class="anchor">barista_graph.py · 55–57</span>
+    </div>
+    <div>
+      <p class="say">"So what happens when you say 'a large latte, please'? The barista node —
+        lines 42 to 48 — hands the conversation to the model, and the model doesn't just reply:
+        it emits a <em>tool call</em>. Line 56, <code>tools_condition</code>, sees that and routes
+        to the tool node. The tool runs — the drink is rung up — and line 57 loops the result
+        <em>back into the barista</em>, which now answers: 'coming right up.' Ask → tool → answer.
+        That loop is the whole agent."</p>
+      <p class="note">Then cut to the picture below — say "here's that same loop as a picture."</p>
+    </div>
+  </div>
+
+  <figure>
+    <svg viewBox="0 0 920 250" role="img"
+         aria-label="The barista graph: START enters the barista node; if the model emits a tool call, tools_condition routes to the make_drink tool node, whose result loops back to the barista; when there is no tool call, the barista's reply ends the run.">
+      <defs>
+        <marker id="ga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--faint)"/>
+        </marker>
+        <marker id="gb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/>
+        </marker>
+      </defs>
+
+      <rect x="40" y="103" width="92" height="44" rx="22" fill="none" stroke="var(--line)"/>
+      <text x="86" y="130" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--soft)">START</text>
+      <line x1="132" y1="125" x2="216" y2="125" stroke="var(--faint)" stroke-width="1.5" marker-end="url(#ga)"/>
+      <text x="174" y="113" text-anchor="middle" font-size="10.5" fill="var(--faint)">entry · 55</text>
+
+      <rect x="220" y="93" width="190" height="64" rx="8" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+      <text x="315" y="120" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">barista</text>
+      <text x="315" y="140" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--soft)">the node · 42–48</text>
+
+      <path d="M 410 105 Q 490 38 578 38" fill="none" stroke="var(--accent)" stroke-width="1.8" marker-end="url(#gb)"/>
+      <text x="472" y="28" text-anchor="middle" font-size="10.5" fill="var(--accent)">tool call → tools_condition · 56</text>
+
+      <rect x="582" y="14" width="210" height="56" rx="8" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="687" y="38" text-anchor="middle" font-size="13.5" font-weight="600" fill="var(--ink)">tools · make_drink</text>
+      <text x="687" y="57" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--soft)">33–36</text>
+
+      <path d="M 582 62 Q 480 100 414 118" fill="none" stroke="var(--faint)" stroke-width="1.5" marker-end="url(#ga)"/>
+      <text x="500" y="102" text-anchor="middle" font-size="10.5" fill="var(--faint)">result loops back · 57</text>
+
+      <line x1="410" y1="140" x2="576" y2="188" stroke="var(--faint)" stroke-width="1.5" marker-end="url(#ga)"/>
+      <text x="472" y="182" text-anchor="middle" font-size="10.5" fill="var(--faint)">no tool call → reply</text>
+      <rect x="580" y="170" width="130" height="44" rx="22" fill="none" stroke="var(--line)"/>
+      <text x="645" y="197" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--soft)">answer</text>
+    </svg>
+    <figcaption>
+      The barista graph, as built on lines 51–58: one thinking node, one tool, one loop.
+    </figcaption>
+  </figure>
+
+  <div class="beat">
+    <div class="no">4 · State
+      <span class="anchor">barista_graph.py · 28–30</span>
+    </div>
+    <div>
+      <p class="say">"Now — where does memory live? Start with State, lines 28 to 30. Two fields.
+        <code>messages</code> — the conversation so far. I think of it as <em>the tape</em>.
+        And <code>usual</code> — one string carrying what we know about this customer long-term.
+        <em>The note.</em> The whole video is the story of these two fields."</p>
+    </div>
+  </div>
+
+  <div class="beat">
+    <div class="no">5 · Short-term — the tape
+      <span class="anchor green">main.py · 22–28</span>
+      <span class="anchor">barista_graph.py · 58</span>
+      <span class="anchor green">main.py · 78</span>
+    </div>
+    <div>
+      <p class="say">"Short-term memory is the checkpointer. Look at main.py, lines 22 to 28 —
+        an if/else. Line 24 is the AgentCore line: <code>AgentCoreMemorySaver</code>, <em>one line</em>,
+        pointing at a managed memory resource — no database of mine anywhere. Line 28 is the local
+        fallback for offline runs. The graph takes whichever it's given — line 58,
+        <code>compile(checkpointer=…)</code> — and line 78 picks <em>which tape we're on</em>:
+        the thread id. Same thread, the tape continues. New thread, blank tape."</p>
+      <p class="note">Green chips = main.py, terracotta = barista_graph.py — the file boundary IS the AgentCore boundary.</p>
+    </div>
+  </div>
+
+  <div class="beat">
+    <div class="no">6 · Long-term — reading the note
+      <span class="anchor green">main.py · 34–50</span>
+      <span class="anchor">barista_graph.py · 44–45</span>
+    </div>
+    <div>
+      <p class="say">"Long-term memory is a <em>search, not a lookup</em>. <code>load_usual</code>,
+        lines 34 to 50: line 39 calls <code>retrieve_memory_records</code> — semantic search — and
+        line 41 says where: <code>/customers/</code> and the customer's id. One drawer per customer.
+        Whatever comes back rides into the graph, and back in the node — lines 44 and 45 — it's
+        injected into the prompt: <em>'this returning customer's usual: …'</em> That's the moment
+        the note meets the model — and the moment that 'usual' sentence from beat one pays off."</p>
+    </div>
+  </div>
+
+  <div class="beat">
+    <div class="no">7 · Long-term — writing, and the policy
+      <span class="anchor green">main.py · 53–69</span>
+      <span class="anchor green">agentcore.json · memories</span>
+    </div>
+    <div>
+      <p class="say">"And how do notes get <em>made</em>? Look how little I do — <code>log_exchange</code>,
+        lines 53 to 69: line 58 writes the raw exchange as an event. That's all my code does.
+        <em>I write the transcript; AWS writes the memory.</em> The distilling is configured, not
+        coded — ten lines in agentcore.json: a <code>USER_PREFERENCE</code> strategy, filed under
+        <code>/customers/{actorId}</code> — the very same namespace line 41 reads from. Config on
+        one end, a search on the other, and the service does the remembering in between."</p>
+    </div>
+  </div>
+
+  <div class="stopcard">
+    <b>Stop here.</b> The demo — dev, invoke as mad, the async gap, "the usual", the bob control —
+    is its own cut with its own script (video-04-direction.md, Cut 3 stop 8). This walk should run
+    about two minutes at speaking pace.
+  </div>
+</div>

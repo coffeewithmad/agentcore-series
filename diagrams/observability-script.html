@@ -1,0 +1,134 @@
+<title>Observability Script</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #F5F3EE; --panel: #FBFAF6; --ink: #23201A; --soft: #5C574C;
+    --faint: #8A8375; --line: #D9D3C6;
+    --accent: #B4531F; --accent-soft: #F0E0D3;
+    --managed: #2E6B4F; --managed-soft: #DCEBE1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #17150F; --panel: #201D16; --ink: #ECE7DA; --soft: #B3AB99;
+      --faint: #857D6C; --line: #34301F; --accent: #E28A57; --accent-soft: #3A251A;
+      --managed: #6FBE92; --managed-soft: #1D2E24;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #17150F; --panel: #201D16; --ink: #ECE7DA; --soft: #B3AB99;
+    --faint: #857D6C; --line: #34301F; --accent: #E28A57; --accent-soft: #3A251A;
+    --managed: #6FBE92; --managed-soft: #1D2E24;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif; line-height: 1.6; font-size: 16px;
+  }
+  .wrap { max-width: 840px; margin: 0 auto; padding: 56px 24px 80px; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--accent); font-weight: 600;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 600;
+    font-size: clamp(30px, 5vw, 42px); line-height: 1.08; margin: 8px 0 32px;
+  }
+  .beat {
+    display: grid; grid-template-columns: 150px 1fr; gap: 4px 22px;
+    padding: 16px 0; border-top: 1px solid var(--line);
+  }
+  .beat:last-of-type { border-bottom: 1px solid var(--line); }
+  @media (max-width: 600px) { .beat { grid-template-columns: 1fr; } }
+  .beat .no {
+    font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--accent); font-weight: 600; padding-top: 4px;
+  }
+  .beat .say {
+    font-family: "Fraunces", Georgia, serif; font-size: 17px; line-height: 1.5; margin: 0 0 6px;
+  }
+  .beat .say:last-of-type { margin-bottom: 0; }
+  .beat .show {
+    font-size: 12.5px; color: var(--faint); margin: 6px 0 0;
+    font-family: "IBM Plex Mono", monospace;
+  }
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">Chapter 6 · Observability</div>
+  <h1>Observability Script</h1>
+
+  <div class="beat">
+    <div class="no">1 · The question</div>
+    <div>
+      <p class="say">"In the memory video, my barista remembered a customer's usual. It worked.
+        But with agents, I didn't write the steps — the model decided, at runtime, what to look up
+        and which tools to call. So: what did my agent actually <em>do</em>? The answer isn't in my
+        code. AgentCore's answer: every call is recorded — logs, traces, and metrics — by default."</p>
+      <p class="show">camera</p>
+    </div>
+  </div>
+
+  <div class="beat">
+    <div class="no">2 · How to enable</div>
+    <div>
+      <p class="say">"Here's the entire setup, as a staircase. Once per account: enable
+        Transaction Search in CloudWatch — one page, a minute, 1% trace indexing is free. Once per
+        agent: nothing — if the CLI scaffolded your project, this one line in requirements.txt is
+        the whole thing. Per call: nothing. It just records."</p>
+      <p class="show">console: Transaction Search settings (10s) → flash requirements.txt line
+        aws-opentelemetry-distro → done. Account: one step. Agent: zero. Call: zero.</p>
+    </div>
+  </div>
+
+  <div class="beat">
+    <div class="no">3 · A live session</div>
+    <div>
+      <p class="say">"This is the GenAI Observability dashboard in CloudWatch. Agents View — all my
+        agents, the harnesses and the barista, which is my own LangGraph code; same telemetry
+        either way. Sessions View — every conversation. Here's one from this morning: a customer
+        saying 'I'll have the usual.' Let's open its trace."</p>
+      <p class="show">console: Agents View → barista → Sessions View → today's session →
+        Trace View. Keep moving until the trace is open.</p>
+    </div>
+  </div>
+
+  <div class="beat">
+    <div class="no">4 · The spans</div>
+    <div>
+      <p class="say">"The whole run, as a timeline. The request at the front door —
+        POST /invocations. RetrieveMemoryRecords — the agent reading this customer's notes. My
+        LangGraph graph, by name. The model turns, with token counts. The make_drink tool. And
+        CreateEvent at the end — the conversation written back to memory."</p>
+      <p class="say">"That's the entire architecture from the memory video, as a recording of it
+        actually happening — and I wrote none of this telemetry. The platform instrumented my code,
+        my framework, even my memory calls, automatically."</p>
+      <p class="show">the trace trajectory/timeline. Walk spans top to bottom — the money shot.</p>
+    </div>
+  </div>
+
+  <div class="beat">
+    <div class="no">5 · Built-in metrics</div>
+    <div>
+      <p class="say">"And underneath the traces, metrics — provided, not built: invocations,
+        latency, errors, token usage, sessions, per agent. Sliced finer than you'd expect — here's
+        tool latency, per tool: how long the code interpreter takes versus the gateway lookup.
+        And it's not just agents — memory, gateway, the built-in tools, identity: every AgentCore
+        service publishes its own metrics. It goes deep; the catalog's in the docs."</p>
+      <p class="show">console: Metrics → bedrock-agentcore namespace → one per-ToolName latency
+        chart. One chart, one breath for the rest. (Optional one-liner: it's all standard OTel +
+        CloudWatch — dashboards or Grafana/Datadog if that's your stack.)</p>
+    </div>
+  </div>
+
+  <div class="beat">
+    <div class="no">6 · Close</div>
+    <div>
+      <p class="say">"So now I can see everything my agent did — every tool call, every token,
+        every second. But here's what this dashboard can't tell me: whether the answer was any
+        <em>good</em>. The agent can be fast, cheap, traced end to end — and wrong. Putting a
+        number on 'good' — that's the last video."</p>
+      <p class="show">camera. Hard stop.</p>
+    </div>
+  </div>
+</div>

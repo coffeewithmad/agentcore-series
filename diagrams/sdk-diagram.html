@@ -1,0 +1,156 @@
+<title>SDK Wrap Anatomy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #F2F3F6; --panel: #FBFBFD; --ink: #1B1E28; --soft: #4F5568;
+    --faint: #838a9c; --line: #D7D9E2;
+    --accent: #4B3FA6;          /* indigo — SDK chapter identity */
+    --accent-soft: #E4E1F3;
+    --yours: #3B4CA8;           /* blue — your existing framework code */
+    --yours-soft: #DEE3F5;
+    --wrap: #A6431F;            /* rust — the tiny AgentCore wrapper */
+    --wrap-soft: #F3E0D6;
+    --code-bg: #1B1D28; --code-ink: #E4E5EE; --code-key: #A99CF0; --code-warn: #E0A277;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121320; --panel: #1A1C29; --ink: #E6E8F2; --soft: #A6ACC2;
+      --faint: #767C92; --line: #2B2E42;
+      --accent: #9C90F0; --accent-soft: #241F42;
+      --yours: #8A97E6; --yours-soft: #1E2340; --wrap: #E08A5F; --wrap-soft: #35211A;
+      --code-bg: #0F1019; --code-ink: #DADCEA; --code-key: #B0A6F5; --code-warn: #E4A87C;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121320; --panel: #1A1C29; --ink: #E6E8F2; --soft: #A6ACC2;
+    --faint: #767C92; --line: #2B2E42;
+    --accent: #9C90F0; --accent-soft: #241F42;
+    --yours: #8A97E6; --yours-soft: #1E2340; --wrap: #E08A5F; --wrap-soft: #35211A;
+    --code-bg: #0F1019; --code-ink: #DADCEA; --code-key: #B0A6F5; --code-warn: #E4A87C;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: "IBM Plex Sans", system-ui, sans-serif; line-height: 1.6; font-size: 16px; }
+  .wrap { max-width: 940px; margin: 0 auto; padding: 56px 24px 80px; }
+  .eyebrow { font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+  h1 { font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: clamp(30px, 5vw, 44px); line-height: 1.08; letter-spacing: -.01em; margin: 8px 0 10px; text-wrap: balance; }
+  .lede { color: var(--soft); font-size: 18px; max-width: 660px; margin: 0 0 8px; }
+  .lede code { font-family: "IBM Plex Mono", monospace; font-size: .85em; background: var(--accent-soft); padding: 1px 6px; border-radius: 3px; }
+  h2 { font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 24px; margin: 56px 0 4px; letter-spacing: -.01em; }
+  .sub { color: var(--faint); font-size: 14px; margin: 0 0 20px; }
+  .sub code { font-family: "IBM Plex Mono", monospace; font-size: .85em; }
+  figure { margin: 0; } figure svg { display: block; width: 100%; height: auto; }
+  figcaption { color: var(--faint); font-size: 13px; margin-top: 12px; text-align: center; font-style: italic; }
+  .scroll { overflow-x: auto; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 24px 26px; }
+  pre { background: var(--code-bg); color: var(--code-ink); border-radius: 6px; padding: 18px 20px; font-family: "IBM Plex Mono", monospace; font-size: 13.5px; line-height: 1.65; overflow-x: auto; margin: 0; }
+  pre .k { color: var(--code-key); } pre .c { color: #6E7488; } pre .w { color: var(--code-warn); }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 18px 0 0; font-size: 13.5px; color: var(--soft); }
+  .legend span { display: inline-flex; align-items: center; gap: 8px; }
+  .sw { width: 14px; height: 14px; border-radius: 3px; flex: none; border: 1px solid rgba(0,0,0,.15); }
+  .callout { border-left: 3px solid var(--wrap); background: var(--panel); padding: 14px 20px; margin: 22px 0 0; }
+  .callout .lab { font-family: "IBM Plex Mono", monospace; font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); display: block; margin-bottom: 4px; }
+  .callout p { margin: 0; font-size: 14.5px; }
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">Chapter 3 · SDK (wrap your own)</div>
+  <h1>Bring the agent you already have</h1>
+  <p class="lede">You've built an agent in LangGraph. The SDK makes it deployable without touching it — a ten-line wrapper around the graph you already wrote. Here's the Trip Planner.</p>
+
+  <h2>Two files, one line of glue between them</h2>
+  <p class="sub">The graph is untouched framework code. Only <code>main.py</code> knows AgentCore exists.</p>
+  <div class="scroll"><figure>
+    <svg viewBox="0 0 900 250" role="img" aria-label="trip_graph.py is a pure LangGraph agent with no AgentCore imports. main.py imports it unchanged and wraps it with BedrockAgentCoreApp and an entrypoint — the only AgentCore-specific file.">
+      <defs><marker id="g1" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto"><polygon points="0,0 9,4 0,8" fill="var(--wrap)"/></marker></defs>
+      <!-- your graph -->
+      <rect x="20" y="35" width="400" height="180" rx="8" fill="var(--yours-soft)" stroke="var(--yours)"/>
+      <text x="40" y="60" font-family="IBM Plex Mono, monospace" font-size="12.5" font-weight="600" fill="var(--yours)">trip_graph.py — your LangGraph agent</text>
+      <text x="40" y="84" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--ink)">StateGraph · parse · route · itinerary · finalize</text>
+      <text x="40" y="104" font-family="IBM Plex Sans" font-size="12" fill="var(--soft)">a real multi-node graph with a conditional branch</text>
+      <rect x="40" y="120" width="360" height="76" rx="6" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="56" y="142" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--faint)">import: langgraph, langchain_aws</text>
+      <text x="56" y="164" font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="600" fill="var(--yours)">NO bedrock_agentcore import anywhere</text>
+      <text x="56" y="184" font-family="IBM Plex Sans" font-size="11" fill="var(--soft)">runs on its own: python trip_graph.py</text>
+      <!-- wrapper -->
+      <rect x="480" y="35" width="400" height="180" rx="8" fill="var(--wrap-soft)" stroke="var(--wrap)"/>
+      <text x="500" y="60" font-family="IBM Plex Mono, monospace" font-size="12.5" font-weight="600" fill="var(--wrap)">main.py — the SDK wrap</text>
+      <text x="500" y="86" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--ink)">from trip_graph import trip_graph</text>
+      <text x="500" y="108" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--ink)">app = BedrockAgentCoreApp()</text>
+      <text x="500" y="130" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--ink)">@app.entrypoint</text>
+      <text x="500" y="150" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--ink)">def plan_trip(payload, ctx):</text>
+      <text x="518" y="170" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--ink)">trip_graph.invoke(...)</text>
+      <text x="500" y="198" font-family="IBM Plex Sans" font-size="11" fill="var(--wrap)">~10 lines — the entire integration surface</text>
+      <!-- import arrow -->
+      <line x1="420" y1="120" x2="478" y2="96" stroke="var(--wrap)" stroke-width="1.5" marker-end="url(#g1)"/>
+      <text x="424" y="112" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="var(--wrap)">imports, unchanged</text>
+    </svg>
+    <figcaption>The SDK is the library <code style="font-family:'IBM Plex Mono',monospace">main.py</code> imports. Swap LangGraph for Strands or CrewAI and only the one line inside the entrypoint changes.</figcaption>
+  </figure></div>
+  <div class="legend">
+    <span><span class="sw" style="background:var(--yours-soft);border-color:var(--yours)"></span> Your framework code (untouched)</span>
+    <span><span class="sw" style="background:var(--wrap-soft);border-color:var(--wrap)"></span> The AgentCore wrapper (the SDK)</span>
+  </div>
+
+  <h2>What runs on a request</h2>
+  <p class="sub">The Runtime calls your entrypoint; inside it, the real LangGraph graph executes — branch and all.</p>
+  <div class="scroll"><figure>
+    <svg viewBox="0 0 900 270" role="img" aria-label="A request enters the runtime and hits the entrypoint, which invokes the LangGraph graph. The graph parses the destination, routes on domestic versus international, runs the matching itinerary node, and finalizes. Denver routes domestic, Lisbon routes international with a passport reminder.">
+      <defs><marker id="g2" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto"><polygon points="0,0 9,4 0,8" fill="currentColor"/></marker></defs>
+      <!-- caller -->
+      <rect x="18" y="110" width="104" height="54" rx="8" fill="var(--panel)" stroke="currentColor" stroke-width="1.5"/>
+      <text x="70" y="133" text-anchor="middle" font-family="IBM Plex Sans" font-size="12.5" font-weight="600" fill="var(--ink)">Caller</text>
+      <text x="70" y="150" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="var(--faint)">invoke_agent_runtime</text>
+      <!-- runtime -->
+      <rect x="150" y="24" width="732" height="222" rx="12" fill="none" stroke="var(--accent)" stroke-width="2"/>
+      <text x="168" y="47" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing=".06em" font-weight="600" fill="var(--accent)">RUNTIME  ·  main.py @app.entrypoint</text>
+      <!-- graph nodes -->
+      <rect x="176" y="62" width="120" height="46" rx="7" fill="var(--yours-soft)" stroke="var(--yours)"/>
+      <text x="236" y="83" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" font-weight="600" fill="var(--yours)">parse</text>
+      <text x="236" y="99" text-anchor="middle" font-family="IBM Plex Sans" font-size="10" fill="var(--soft)">get destination</text>
+      <!-- route diamond -->
+      <polygon points="360,85 400,63 440,85 400,107" fill="var(--panel)" stroke="var(--yours)" stroke-width="1.5"/>
+      <text x="400" y="82" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--yours)">route</text>
+      <text x="400" y="96" text-anchor="middle" font-family="IBM Plex Sans" font-size="9" fill="var(--soft)">US?</text>
+      <!-- branch nodes -->
+      <rect x="500" y="40" width="200" height="46" rx="7" fill="var(--panel)" stroke="var(--yours)"/>
+      <text x="600" y="61" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--ink)">domestic_itinerary</text>
+      <text x="600" y="77" text-anchor="middle" font-family="IBM Plex Sans" font-size="9.5" fill="var(--faint)">Denver → no passport</text>
+      <rect x="500" y="104" width="200" height="46" rx="7" fill="var(--panel)" stroke="var(--yours)"/>
+      <text x="600" y="125" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--ink)">international_itinerary</text>
+      <text x="600" y="141" text-anchor="middle" font-family="IBM Plex Sans" font-size="9.5" fill="var(--faint)">Lisbon → passport reminder</text>
+      <!-- finalize -->
+      <rect x="740" y="72" width="112" height="46" rx="7" fill="var(--yours-soft)" stroke="var(--yours)"/>
+      <text x="796" y="93" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" font-weight="600" fill="var(--yours)">finalize</text>
+      <text x="796" y="109" text-anchor="middle" font-family="IBM Plex Sans" font-size="9.5" fill="var(--faint)">answer</text>
+      <!-- arrows -->
+      <line x1="122" y1="132" x2="174" y2="98" stroke="currentColor" marker-end="url(#g2)"/>
+      <line x1="296" y1="85" x2="358" y2="85" stroke="currentColor" marker-end="url(#g2)"/>
+      <line x1="440" y1="78" x2="498" y2="64" stroke="currentColor" marker-end="url(#g2)"/>
+      <text x="452" y="60" font-family="IBM Plex Mono, monospace" font-size="9" fill="var(--faint)">domestic</text>
+      <line x1="440" y1="92" x2="498" y2="120" stroke="currentColor" marker-end="url(#g2)"/>
+      <text x="450" y="118" font-family="IBM Plex Mono, monospace" font-size="9" fill="var(--faint)">international</text>
+      <line x1="700" y1="63" x2="738" y2="82" stroke="currentColor" marker-end="url(#g2)"/>
+      <line x1="700" y1="127" x2="738" y2="106" stroke="currentColor" marker-end="url(#g2)"/>
+      <!-- return -->
+      <path d="M796 118 Q796 210 130 210 Q70 210 70 166" fill="none" stroke="currentColor" stroke-dasharray="4 3" marker-end="url(#g2)"/>
+      <text x="410" y="205" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="var(--faint)">entrypoint returns the graph's answer</text>
+    </svg>
+    <figcaption>Verified in the cloud: Denver → domestic (no passport), Lisbon → international (passport reminder). The conditional graph runs unchanged inside the deployed runtime.</figcaption>
+  </figure></div>
+
+  <h2>The whole integration, in full</h2>
+  <p class="sub">Everything that makes the existing agent deployable. Nothing else changes.</p>
+  <div class="panel"><pre><code><span class="c"># main.py — the only AgentCore-specific file</span>
+<span class="k">from</span> bedrock_agentcore <span class="k">import</span> BedrockAgentCoreApp
+<span class="k">from</span> trip_graph <span class="k">import</span> trip_graph      <span class="c"># your existing agent, untouched</span>
+
+app = BedrockAgentCoreApp()
+
+<span class="k">@app.entrypoint</span>
+<span class="k">def</span> plan_trip(payload, context):
+    result = trip_graph.invoke({<span class="k">"request"</span>: payload.get(<span class="k">"prompt"</span>)})
+    <span class="k">return</span> result[<span class="k">"messages"</span>][-1].content
+
+app.run()</code></pre></div>
+</div>

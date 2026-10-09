@@ -1,0 +1,18 @@
+[
+    {
+        "name": "get_order",
+        "description": "Look up an order by its ID. Returns items, total, status, and days since purchase.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "order_id": {
+                    "type": "string",
+                    "description": "The order ID, e.g. 123"
+                }
+            },
+            "required": [
+                "order_id"
+            ]
+        }
+    }
+]

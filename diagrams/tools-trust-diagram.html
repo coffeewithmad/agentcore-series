@@ -1,0 +1,121 @@
+<title>Tools & Trust</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #F2F4F5; --panel: #FBFCFC; --ink: #1A2124; --soft: #4C565A; --faint: #7E888C; --line: #D5DCDE;
+    --accent: #1D5E63;          /* deep teal — tools & trust identity */
+    --accent-soft: #D8E9EA;
+    --bring: #2E5FA8; --bring-soft: #DCE6F5;   /* blue — a tool you bring (Gateway) */
+    --box: #7A4FB0; --box-soft: #E9DEF5;       /* purple — a tool in the box (built-in) */
+    --trust: #9A6B1F; --trust-soft: #F2E7CE;   /* amber — identity / trust boundary */
+    --code-bg: #16201F; --code-ink: #E2E9E8; --code-key: #74C2C0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101617; --panel: #18201F; --ink: #E4EBEA; --soft: #A6B0B2; --faint: #7A8486; --line: #2A3332;
+      --accent: #5FB8BD; --accent-soft: #123033;
+      --bring: #7F9AE0; --bring-soft: #1B2740; --box: #B99BE6; --box-soft: #281B3C; --trust: #D3A860; --trust-soft: #2E2617;
+      --code-bg: #0D1413; --code-ink: #DAE2E1; --code-key: #7FCBC8;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #101617; --panel: #18201F; --ink: #E4EBEA; --soft: #A6B0B2; --faint: #7A8486; --line: #2A3332;
+    --accent: #5FB8BD; --accent-soft: #123033;
+    --bring: #7F9AE0; --bring-soft: #1B2740; --box: #B99BE6; --box-soft: #281B3C; --trust: #D3A860; --trust-soft: #2E2617;
+    --code-bg: #0D1413; --code-ink: #DAE2E1; --code-key: #7FCBC8;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: "IBM Plex Sans", system-ui, sans-serif; line-height: 1.6; font-size: 16px; }
+  .wrap { max-width: 940px; margin: 0 auto; padding: 56px 24px 80px; }
+  .eyebrow { font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+  h1 { font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: clamp(30px, 5vw, 44px); line-height: 1.08; letter-spacing: -.01em; margin: 8px 0 10px; text-wrap: balance; }
+  .lede { color: var(--soft); font-size: 18px; max-width: 680px; margin: 0 0 8px; }
+  .lede code { font-family: "IBM Plex Mono", monospace; font-size: .85em; background: var(--accent-soft); padding: 1px 6px; border-radius: 3px; }
+  h2 { font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 24px; margin: 56px 0 4px; letter-spacing: -.01em; }
+  .sub { color: var(--faint); font-size: 14px; margin: 0 0 20px; }
+  figure { margin: 0; } figure svg { display: block; width: 100%; height: auto; }
+  figcaption { color: var(--faint); font-size: 13px; margin-top: 12px; text-align: center; font-style: italic; }
+  .scroll { overflow-x: auto; }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 18px 0 0; font-size: 13.5px; color: var(--soft); }
+  .legend span { display: inline-flex; align-items: center; gap: 8px; }
+  .sw { width: 14px; height: 14px; border-radius: 3px; flex: none; border: 1px solid rgba(0,0,0,.15); }
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">Chapter 5 · Tools &amp; Trust</div>
+  <h1>Tools you bring, tools in the box</h1>
+  <p class="lede">An agent gets useful when it can <em>act</em>. Some tools you bring (your own APIs, via Gateway); some come built in (a code interpreter). And in both cases, the credentials live in the platform — never in the agent. Here's the Order Helper.</p>
+
+  <h2>One question, two kinds of tool</h2>
+  <p class="sub">"What's the refund for order 123?" pulls in both — verified in the cloud.</p>
+  <div class="scroll"><figure>
+    <svg viewBox="0 0 900 340" role="img" aria-label="A refund question reaches the agent. It calls get_order through the Gateway, which invokes your Lambda using an IAM role held by the platform; then it uses the built-in code interpreter to compute the refund; then it answers. No credentials live in the agent.">
+      <defs>
+        <marker id="t1" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto"><polygon points="0,0 9,4 0,8" fill="currentColor"/></marker>
+        <marker id="tb" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto"><polygon points="0,0 9,4 0,8" fill="var(--bring)"/></marker>
+        <marker id="tx" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto"><polygon points="0,0 9,4 0,8" fill="var(--box)"/></marker>
+      </defs>
+      <!-- caller -->
+      <rect x="18" y="140" width="120" height="60" rx="8" fill="var(--panel)" stroke="currentColor" stroke-width="1.5"/>
+      <text x="78" y="164" text-anchor="middle" font-family="IBM Plex Sans" font-size="12.5" font-weight="600" fill="var(--ink)">Caller</text>
+      <text x="78" y="182" text-anchor="middle" font-family="IBM Plex Sans" font-size="10" fill="var(--faint)">"refund for #123?"</text>
+      <!-- agent -->
+      <rect x="185" y="128" width="180" height="84" rx="10" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
+      <text x="275" y="158" text-anchor="middle" font-family="IBM Plex Sans" font-size="14" font-weight="600" fill="var(--ink)">Order Helper</text>
+      <text x="275" y="177" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="var(--soft)">Harness agent</text>
+      <text x="275" y="194" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="var(--faint)">no credentials in here</text>
+      <line x1="138" y1="170" x2="183" y2="170" stroke="currentColor" marker-end="url(#t1)"/>
+      <!-- tool you bring: Gateway -> Lambda -->
+      <rect x="430" y="40" width="180" height="60" rx="8" fill="var(--bring-soft)" stroke="var(--bring)"/>
+      <text x="520" y="63" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="600" fill="var(--bring)">Gateway (MCP)</text>
+      <text x="520" y="82" text-anchor="middle" font-family="IBM Plex Sans" font-size="10.5" fill="var(--soft)">exposes get_order as a tool</text>
+      <rect x="680" y="40" width="180" height="60" rx="8" fill="var(--panel)" stroke="var(--bring)"/>
+      <text x="770" y="63" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="600" fill="var(--ink)">your Lambda</text>
+      <text x="770" y="82" text-anchor="middle" font-family="IBM Plex Sans" font-size="10.5" fill="var(--soft)">order lookup</text>
+      <text x="446" y="30" font-family="IBM Plex Mono, monospace" font-size="10" font-weight="600" letter-spacing=".05em" fill="var(--bring)">A TOOL YOU BRING</text>
+      <line x1="365" y1="150" x2="428" y2="88" stroke="var(--bring)" stroke-width="1.5" marker-end="url(#tb)"/>
+      <text x="368" y="120" font-family="IBM Plex Mono, monospace" font-size="9" fill="var(--bring)">get_order</text>
+      <line x1="610" y1="70" x2="678" y2="70" stroke="var(--bring)" stroke-width="1.5" marker-end="url(#tb)"/>
+      <!-- trust badge on the gateway->lambda hop -->
+      <rect x="612" y="104" width="150" height="26" rx="13" fill="var(--trust-soft)" stroke="var(--trust)"/>
+      <text x="687" y="121" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" font-weight="600" fill="var(--trust)">IAM role · platform-held</text>
+      <!-- tool in the box: code interpreter -->
+      <rect x="430" y="250" width="230" height="60" rx="8" fill="var(--box-soft)" stroke="var(--box)"/>
+      <text x="545" y="273" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="600" fill="var(--box)">code_interpreter</text>
+      <text x="545" y="292" text-anchor="middle" font-family="IBM Plex Sans" font-size="10.5" fill="var(--soft)">computes the refund (30-day rule)</text>
+      <text x="446" y="240" font-family="IBM Plex Mono, monospace" font-size="10" font-weight="600" letter-spacing=".05em" fill="var(--box)">A TOOL IN THE BOX (built-in)</text>
+      <line x1="330" y1="212" x2="428" y2="270" stroke="var(--box)" stroke-width="1.5" marker-end="url(#tx)"/>
+      <text x="330" y="250" font-family="IBM Plex Mono, monospace" font-size="9" fill="var(--box)">compute</text>
+      <!-- answer -->
+      <path d="M275 212 Q275 300 150 300 Q78 300 78 202" fill="none" stroke="currentColor" stroke-dasharray="4 3" marker-end="url(#t1)"/>
+      <text x="150" y="330" font-family="IBM Plex Sans" font-size="11.5" fill="var(--soft)">"Order total $48.00 — full refund, purchased 5 days ago."</text>
+    </svg>
+    <figcaption>Verified tool calls: <code style="font-family:'IBM Plex Mono',monospace">order-lookup___get_order</code> (Gateway→Lambda) then <code style="font-family:'IBM Plex Mono',monospace">code_interpreter</code>. Order 123 → full refund; order 456 (40 days) → 50% restocking.</figcaption>
+  </figure></div>
+  <div class="legend">
+    <span><span class="sw" style="background:var(--bring-soft);border-color:var(--bring)"></span> A tool you bring (Gateway → your API)</span>
+    <span><span class="sw" style="background:var(--box-soft);border-color:var(--box)"></span> A tool in the box (built-in)</span>
+    <span><span class="sw" style="background:var(--trust-soft);border-color:var(--trust)"></span> Trust (IAM held by the platform)</span>
+  </div>
+
+  <h2>The three ideas, plainly</h2>
+  <p class="sub">One chapter, three threads — this is the whole "Tools &amp; Trust" story.</p>
+  <div class="scroll"><figure>
+    <svg viewBox="0 0 900 150" role="img" aria-label="Gateway turns your APIs into tools. Built-in tools ship with AgentCore. Identity keeps credentials in the platform, not in agent code.">
+      <rect x="20" y="30" width="270" height="90" rx="8" fill="var(--bring-soft)" stroke="var(--bring)"/>
+      <text x="155" y="60" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" font-weight="600" fill="var(--bring)">Gateway</text>
+      <text x="155" y="83" text-anchor="middle" font-family="IBM Plex Sans" font-size="12" fill="var(--soft)">your APIs &amp; Lambdas</text>
+      <text x="155" y="101" text-anchor="middle" font-family="IBM Plex Sans" font-size="12" fill="var(--soft)">become MCP tools</text>
+      <rect x="315" y="30" width="270" height="90" rx="8" fill="var(--box-soft)" stroke="var(--box)"/>
+      <text x="450" y="60" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" font-weight="600" fill="var(--box)">Built-in tools</text>
+      <text x="450" y="83" text-anchor="middle" font-family="IBM Plex Sans" font-size="12" fill="var(--soft)">code interpreter, browser,</text>
+      <text x="450" y="101" text-anchor="middle" font-family="IBM Plex Sans" font-size="12" fill="var(--soft)">ready out of the box</text>
+      <rect x="610" y="30" width="270" height="90" rx="8" fill="var(--trust-soft)" stroke="var(--trust)"/>
+      <text x="745" y="60" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" font-weight="600" fill="var(--trust)">Identity</text>
+      <text x="745" y="83" text-anchor="middle" font-family="IBM Plex Sans" font-size="12" fill="var(--soft)">who may call the agent;</text>
+      <text x="745" y="101" text-anchor="middle" font-family="IBM Plex Sans" font-size="12" fill="var(--soft)">creds held by the platform</text>
+    </svg>
+    <figcaption>Gateway (bring your own) + built-in tools (in the box) + Identity (no secrets in agent code).</figcaption>
+  </figure></div>
+</div>

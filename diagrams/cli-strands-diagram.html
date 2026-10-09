@@ -1,0 +1,147 @@
+<title>CLI Scaffold Anatomy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #F1F4F3; --panel: #FBFCFB; --ink: #1A211F; --soft: #4E5A56;
+    --faint: #7E8A85; --line: #D3DBD8;
+    --accent: #1F6E63;          /* teal — the CLI/Strands identity for this chapter */
+    --accent-soft: #DCEDE9;
+    --run: #2E6B4F;             /* green — code you edit / your tool runs */
+    --run-soft: #DCEBE1;
+    --keep: #7A6A3A;            /* olive — scaffolded boilerplate you keep */
+    --keep-soft: #EEE7D2;
+    --code-bg: #17201E; --code-ink: #E1E8E5; --code-key: #6FC3B4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0F1614; --panel: #18201E; --ink: #E6ECEA; --soft: #A8B3AF;
+      --faint: #7C8783; --line: #2A3330;
+      --accent: #5FBFB0; --accent-soft: #12312C;
+      --run: #6FBE92; --run-soft: #1C2E24; --keep: #C9B778; --keep-soft: #2A2617;
+      --code-bg: #0C1210; --code-ink: #D8E0DD; --code-key: #7ECFC0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0F1614; --panel: #18201E; --ink: #E6ECEA; --soft: #A8B3AF;
+    --faint: #7C8783; --line: #2A3330;
+    --accent: #5FBFB0; --accent-soft: #12312C;
+    --run: #6FBE92; --run-soft: #1C2E24; --keep: #C9B778; --keep-soft: #2A2617;
+    --code-bg: #0C1210; --code-ink: #D8E0DD; --code-key: #7ECFC0;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: "IBM Plex Sans", system-ui, sans-serif; line-height: 1.6; font-size: 16px; }
+  .wrap { max-width: 940px; margin: 0 auto; padding: 56px 24px 80px; }
+  .eyebrow { font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+  h1 { font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: clamp(30px, 5vw, 44px); line-height: 1.08; letter-spacing: -.01em; margin: 8px 0 10px; text-wrap: balance; }
+  .lede { color: var(--soft); font-size: 18px; max-width: 660px; margin: 0 0 8px; }
+  .lede code, .sub code { font-family: "IBM Plex Mono", monospace; font-size: .85em; background: var(--accent-soft); padding: 1px 6px; border-radius: 3px; }
+  h2 { font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 24px; margin: 56px 0 4px; letter-spacing: -.01em; }
+  .sub { color: var(--faint); font-size: 14px; margin: 0 0 20px; }
+  figure { margin: 0; }
+  figure svg { display: block; width: 100%; height: auto; }
+  figcaption { color: var(--faint); font-size: 13px; margin-top: 12px; text-align: center; font-style: italic; }
+  .scroll { overflow-x: auto; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 24px 26px; }
+  pre { background: var(--code-bg); color: var(--code-ink); border-radius: 6px; padding: 18px 20px; font-family: "IBM Plex Mono", monospace; font-size: 13.5px; line-height: 1.65; overflow-x: auto; margin: 0; }
+  pre .k { color: var(--code-key); } pre .c { color: #6E7A75; }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 18px 0 0; font-size: 13.5px; color: var(--soft); }
+  .legend span { display: inline-flex; align-items: center; gap: 8px; }
+  .sw { width: 14px; height: 14px; border-radius: 3px; flex: none; border: 1px solid rgba(0,0,0,.15); }
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">Chapter 3 · CLI (Strands)</div>
+  <h1>Scaffold, then edit</h1>
+  <p class="lede">One command writes a real, editable Strands agent — the framework, the runtime wrapper, and the packaging, all generated. You drop in your tool and deploy. Here's the Unit Converter we built.</p>
+
+  <h2>One command → a working agent on disk</h2>
+  <p class="sub">Unlike the Harness (a config file), the CLI gives you actual Python you own and edit.</p>
+  <div class="scroll"><figure>
+    <svg viewBox="0 0 900 250" role="img" aria-label="agentcore create with the Strands framework flag generates a project: main.py holding the Strands Agent, its tools, and the BedrockAgentCoreApp wrapper, plus the model loader and CDK config.">
+      <defs>
+        <marker id="a1" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto"><polygon points="0,0 9,4 0,8" fill="var(--accent)"/></marker>
+      </defs>
+      <!-- command -->
+      <rect x="20" y="95" width="250" height="60" rx="8" fill="var(--accent-soft)" stroke="var(--accent)"/>
+      <text x="145" y="120" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12.5" font-weight="600" fill="var(--accent)">agentcore create</text>
+      <text x="145" y="139" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--soft)">--framework Strands</text>
+      <line x1="270" y1="125" x2="322" y2="125" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#a1)"/>
+      <!-- generated project -->
+      <rect x="330" y="30" width="550" height="190" rx="8" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="350" y="54" font-family="IBM Plex Mono, monospace" font-size="11" font-weight="600" letter-spacing=".06em" fill="var(--faint)">GENERATED — app/unit_converter/</text>
+      <rect x="350" y="66" width="510" height="42" rx="6" fill="var(--run-soft)" stroke="var(--run)"/>
+      <text x="366" y="84" font-family="IBM Plex Mono, monospace" font-size="12.5" fill="var(--ink)">main.py — Strands Agent + your @tool + entrypoint</text>
+      <text x="366" y="100" font-family="IBM Plex Sans" font-size="11" fill="var(--run)">the part you edit</text>
+      <rect x="350" y="116" width="248" height="40" rx="6" fill="var(--keep-soft)" stroke="var(--keep)"/>
+      <text x="366" y="133" font-family="IBM Plex Mono, monospace" font-size="12" fill="var(--ink)">model/load.py</text>
+      <text x="366" y="149" font-family="IBM Plex Sans" font-size="10.5" fill="var(--keep)">boilerplate you keep</text>
+      <rect x="612" y="116" width="248" height="40" rx="6" fill="var(--keep-soft)" stroke="var(--keep)"/>
+      <text x="628" y="133" font-family="IBM Plex Mono, monospace" font-size="12" fill="var(--ink)">agentcore/ (CDK config)</text>
+      <text x="628" y="149" font-family="IBM Plex Sans" font-size="10.5" fill="var(--keep)">deploy wiring</text>
+      <rect x="350" y="164" width="510" height="40" rx="6" fill="var(--panel)" stroke="var(--line)" stroke-dasharray="4 3"/>
+      <text x="366" y="181" font-family="IBM Plex Mono, monospace" font-size="12" fill="var(--soft)">also scaffolded: session cache · MCP client stub</text>
+      <text x="366" y="197" font-family="IBM Plex Sans" font-size="10.5" fill="var(--faint)">we deleted the MCP stub for a minimal example</text>
+    </svg>
+    <figcaption>The CLI writes the framework choice, the SDK wrapper, and the deploy config for you — you edit <code style="font-family:'IBM Plex Mono',monospace">main.py</code>.</figcaption>
+  </figure></div>
+  <div class="legend">
+    <span><span class="sw" style="background:var(--run-soft);border-color:var(--run)"></span> Code you edit</span>
+    <span><span class="sw" style="background:var(--keep-soft);border-color:var(--keep)"></span> Boilerplate you keep</span>
+  </div>
+
+  <h2>How one request flows</h2>
+  <p class="sub">The Strands agent loop runs <em>inside your deployed runtime</em> — and your tool's code runs with it.</p>
+  <div class="scroll"><figure>
+    <svg viewBox="0 0 900 250" role="img" aria-label="A prompt enters the runtime. The Strands agent loop reasons with the model, and when a conversion is needed it calls the convert_units Python function, which runs inside the same runtime and returns the result to the loop, which answers.">
+      <defs>
+        <marker id="a2" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto"><polygon points="0,0 9,4 0,8" fill="currentColor"/></marker>
+        <marker id="a2r" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto"><polygon points="0,0 9,4 0,8" fill="var(--run)"/></marker>
+      </defs>
+      <!-- caller -->
+      <rect x="20" y="95" width="120" height="60" rx="8" fill="var(--panel)" stroke="currentColor" stroke-width="1.5"/>
+      <text x="80" y="120" text-anchor="middle" font-family="IBM Plex Sans" font-size="13" font-weight="600" fill="var(--ink)">Caller</text>
+      <text x="80" y="138" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--faint)">"20 miles in km?"</text>
+      <!-- runtime box -->
+      <rect x="185" y="30" width="430" height="190" rx="12" fill="none" stroke="var(--accent)" stroke-width="2"/>
+      <text x="203" y="54" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing=".06em" font-weight="600" fill="var(--accent)">YOUR DEPLOYED RUNTIME</text>
+      <!-- strands loop -->
+      <rect x="225" y="72" width="200" height="60" rx="8" fill="var(--panel)" stroke="currentColor" stroke-width="1.5"/>
+      <text x="325" y="97" text-anchor="middle" font-family="IBM Plex Sans" font-size="13" font-weight="600" fill="var(--ink)">Strands agent loop</text>
+      <text x="325" y="115" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="var(--faint)">model reasons</text>
+      <!-- tool -->
+      <rect x="225" y="150" width="360" height="52" rx="8" fill="var(--run-soft)" stroke="var(--run)"/>
+      <text x="245" y="172" font-family="IBM Plex Mono, monospace" font-size="12.5" font-weight="600" fill="var(--run)">@tool convert_units(value, from, to)</text>
+      <text x="245" y="190" font-family="IBM Plex Sans" font-size="11" fill="var(--soft)">your Python — runs in the same runtime</text>
+      <!-- arrows loop<->tool -->
+      <line x1="300" y1="132" x2="300" y2="148" stroke="currentColor" marker-end="url(#a2)"/>
+      <line x1="360" y1="150" x2="360" y2="134" stroke="var(--run)" marker-end="url(#a2r)"/>
+      <text x="250" y="146" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="var(--faint)">calls</text>
+      <text x="368" y="146" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="var(--run)">result</text>
+      <!-- model -->
+      <rect x="470" y="72" width="120" height="60" rx="8" fill="var(--panel)" stroke="currentColor" stroke-width="1.5"/>
+      <text x="530" y="100" text-anchor="middle" font-family="IBM Plex Sans" font-size="12.5" font-weight="600" fill="var(--ink)">Bedrock</text>
+      <text x="530" y="117" text-anchor="middle" font-family="IBM Plex Sans" font-size="10.5" fill="var(--faint)">Claude Haiku</text>
+      <line x1="425" y1="102" x2="468" y2="102" stroke="currentColor" marker-end="url(#a2)"/>
+      <!-- caller arrows -->
+      <line x1="140" y1="115" x2="223" y2="100" stroke="currentColor" marker-end="url(#a2)"/>
+      <path d="M225 118 Q150 150 140 150" fill="none" stroke="currentColor" stroke-dasharray="4 3" marker-end="url(#a2)"/>
+      <text x="632" y="110" font-family="IBM Plex Sans" font-size="12" fill="var(--soft)">→ "32.19 km"</text>
+      <line x1="615" y1="120" x2="700" y2="120" stroke="currentColor" stroke-dasharray="4 3" marker-end="url(#a2)"/>
+    </svg>
+    <figcaption>Contrast with the Harness inline_function: here your tool's <em>code</em> ships in the runtime and executes in the loop — nothing is handed back to the caller.</figcaption>
+  </figure></div>
+
+  <h2>The tool we dropped in</h2>
+  <div class="panel"><pre><code><span class="k">@tool</span>
+<span class="k">def</span> convert_units(value: float, from_unit: str, to_unit: str) -> str:
+    <span class="c">"""Convert length (m/km/mi/ft), weight (g/kg/lb/oz), or temp (c/f)."""</span>
+    <span class="c"># docstring + type hints become the schema the model sees</span>
+    ...
+    <span class="k">return</span> f"{value} {from_unit} = {round(result, 4)} {to_unit}"
+
+tools.append(convert_units)     <span class="c"># that's the whole integration</span>
+
+<span class="c">// verified: local toolUse {"from_unit":"kg","to_unit":"lb"}, and in the cloud</span>
+<span class="c">// "100 F to C, 3 mi to feet" → 2 tool calls → 37.78 C, 15,840 ft. Correct.</span></code></pre></div>
+</div>

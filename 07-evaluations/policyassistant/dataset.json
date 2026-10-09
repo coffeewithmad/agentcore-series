@@ -1,0 +1,74 @@
+{
+  "scenarios": [
+    {
+      "scenario_id": "vacation-full-picture",
+      "turns": [{
+        "input": "How much vacation do employees receive, when can they start using it, and how much can they carry over?",
+        "expected_response": "Employees receive 20 vacation days per year, accruing at 1.67 days per month. Vacation can be used only after the 90-day probation period, and up to 5 unused days can be carried over to the next year."
+      }]
+    },
+    {
+      "scenario_id": "sick-days-carryover",
+      "turns": [{
+        "input": "How many sick days do we get per year, and do unused ones carry over?",
+        "expected_response": "10 sick days per year, and they do not carry over."
+      }]
+    },
+    {
+      "scenario_id": "expense-deadline",
+      "turns": [{
+        "input": "What is the deadline for submitting an expense report?",
+        "expected_response": "Expense reports must be submitted within 30 days of the expense."
+      }]
+    },
+    {
+      "scenario_id": "travel-no-approval",
+      "turns": [{
+        "input": "Do I need pre-approval for a $300 domestic trip?",
+        "expected_response": "No. Domestic trips of $500 or less do not require pre-approval."
+      }]
+    },
+    {
+      "scenario_id": "remote-days",
+      "turns": [{
+        "input": "How many days per week can I work remotely, and what does it require?",
+        "expected_response": "Up to 3 days per week with your manager's agreement. A fully remote arrangement requires VP approval."
+      }]
+    },
+    {
+      "scenario_id": "exception-lodging-receipt",
+      "turns": [{
+        "input": "Do I need a receipt for a $40 hotel charge?",
+        "expected_response": "Yes. Although expenses of $50 or less normally need no receipt, lodging always requires a receipt regardless of amount."
+      }]
+    },
+    {
+      "scenario_id": "exception-sick-note",
+      "turns": [{
+        "input": "I was out sick four days in a row. Do I need to provide anything when I return?",
+        "expected_response": "Yes — a doctor's note is required for more than 3 consecutive sick days."
+      }]
+    },
+    {
+      "scenario_id": "multi-policy-trip-dinner",
+      "turns": [{
+        "input": "I'm planning a $450 domestic conference trip, and while there I'll expense a $45 team dinner. Do I need pre-approval for the trip, and do I need a receipt for the dinner?",
+        "expected_response": "No pre-approval is needed for the trip, since domestic trips of $500 or less don't require it. No receipt is needed for the $45 dinner, since it's $50 or less and not lodging."
+      }]
+    },
+    {
+      "scenario_id": "multi-policy-probation",
+      "turns": [{
+        "input": "I'm in my first 90 days. Can I take vacation days, and what would I need to go fully remote?",
+        "expected_response": "You can't use vacation days during the 90-day probation period, although they accrue during it. Going fully remote requires VP approval."
+      }]
+    },
+    {
+      "scenario_id": "unsupported-parental-leave",
+      "turns": [{
+        "input": "What is our parental leave policy?",
+        "expected_response": "Parental leave is not covered in the available policy documents. Please contact HR."
+      }]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+[project]
+name = "barista"
+version = "0.1.0"
+description = "LangGraph barista agent with two-tier AgentCore memory"
+requires-python = ">=3.12"
+dependencies = [
+    "bedrock-agentcore",
+    "langgraph>=1.0",
+    "langchain-aws>=1.0",
+    "langgraph-checkpoint-aws",
+    "aws-opentelemetry-distro",
+]

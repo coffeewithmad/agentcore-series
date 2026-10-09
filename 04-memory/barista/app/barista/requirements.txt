@@ -1,0 +1,5 @@
+bedrock-agentcore
+langgraph>=1.0
+langchain-aws>=1.0
+langgraph-checkpoint-aws
+aws-opentelemetry-distro

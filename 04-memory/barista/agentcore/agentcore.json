@@ -1,0 +1,47 @@
+{
+  "$schema": "https://schema.agentcore.aws.dev/v1/agentcore.json",
+  "name": "barista",
+  "version": 1,
+  "managedBy": "CDK",
+  "tags": {
+    "agentcore:created-by": "agentcore-cli",
+    "agentcore:project-name": "barista"
+  },
+  "runtimes": [
+    {
+      "name": "barista",
+      "build": "CodeZip",
+      "entrypoint": "main.py",
+      "codeLocation": "app/barista/",
+      "runtimeVersion": "PYTHON_3_14",
+      "networkMode": "PUBLIC",
+      "protocol": "HTTP"
+    }
+  ],
+  "memories": [
+  {
+   "name": "barista_mem",
+   "eventExpiryDuration": 30,
+   "strategies": [
+    {
+     "type": "USER_PREFERENCE",
+     "name": "usual_order",
+     "description": "Extract each customer's usual coffee order from conversations",
+     "namespaces": ["/customers/{actorId}"]
+    }
+   ]
+  }
+ ],
+  "knowledgeBases": [],
+  "credentials": [],
+  "evaluators": [],
+  "onlineEvalConfigs": [],
+  "agentCoreGateways": [],
+  "policyEngines": [],
+  "configBundles": [],
+  "abTests": [],
+  "harnesses": [],
+  "datasets": [],
+  "capacityProviders": [],
+  "payments": []
+}

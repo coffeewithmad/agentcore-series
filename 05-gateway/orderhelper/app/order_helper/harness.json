@@ -1,0 +1,29 @@
+{
+  "name": "order_helper",
+  "model": {
+    "provider": "bedrock",
+    "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0"
+  },
+  "tools": [
+    {
+      "type": "agentcore_code_interpreter",
+      "name": "code_interpreter"
+    },
+    {
+      "type": "agentcore_gateway",
+      "name": "order_gateway",
+      "config": {
+        "agentCoreGateway": {
+          "gatewayArn": "arn:aws:bedrock-agentcore:us-east-1:YOUR_AWS_ACCOUNT_ID:gateway/orderhelper-order-gateway-mindf5a6it",
+          "outboundAuth": {
+            "awsIam": {}
+          }
+        }
+      }
+    }
+  ],
+  "skills": [],
+  "memory": {
+    "mode": "disabled"
+  }
+}

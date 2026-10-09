@@ -1,0 +1,242 @@
+<title>Harness Anatomy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #F5F3EE;
+    --panel: #FBFAF6;
+    --ink: #23201A;
+    --soft: #5C574C;
+    --faint: #8A8375;
+    --line: #D9D3C6;
+    --accent: #B4531F;          /* terracotta — the "platform runs it" signal */
+    --accent-soft: #F0E0D3;
+    --managed: #2E6B4F;         /* green — executed by the managed loop */
+    --managed-soft: #DCEBE1;
+    --caller: #9A6B1F;          /* amber — handed back to caller */
+    --caller-soft: #F1E6CE;
+    --code-bg: #211E18;
+    --code-ink: #E5DFD2;
+    --code-key: #D99A6C;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #17150F; --panel: #201D16; --ink: #ECE7DA; --soft: #B3AB99;
+      --faint: #857D6C; --line: #34301F; --accent: #E28A57; --accent-soft: #3A251A;
+      --managed: #6FBE92; --managed-soft: #1D2E24; --caller: #D6AB63; --caller-soft: #2E2618;
+      --code-bg: #100E0A; --code-ink: #DAD3C4; --code-key: #E0A277;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #17150F; --panel: #201D16; --ink: #ECE7DA; --soft: #B3AB99;
+    --faint: #857D6C; --line: #34301F; --accent: #E28A57; --accent-soft: #3A251A;
+    --managed: #6FBE92; --managed-soft: #1D2E24; --caller: #D6AB63; --caller-soft: #2E2618;
+    --code-bg: #100E0A; --code-ink: #DAD3C4; --code-key: #E0A277;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif; line-height: 1.6;
+    font-size: 16px;
+  }
+  .wrap { max-width: 940px; margin: 0 auto; padding: 56px 24px 80px; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--accent); font-weight: 600;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 600;
+    font-size: clamp(30px, 5vw, 44px); line-height: 1.08; letter-spacing: -.01em;
+    margin: 8px 0 10px; text-wrap: balance;
+  }
+  .lede { color: var(--soft); font-size: 18px; max-width: 640px; margin: 0 0 8px; }
+  .lede code { font-family: "IBM Plex Mono", monospace; font-size: .85em; background: var(--accent-soft); padding: 1px 6px; border-radius: 3px; }
+  h2 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 24px;
+    margin: 56px 0 4px; letter-spacing: -.01em;
+  }
+  .sub { color: var(--faint); font-size: 14px; margin: 0 0 20px; }
+  figure { margin: 0; }
+  figure svg { display: block; width: 100%; height: auto; }
+  figcaption { color: var(--faint); font-size: 13px; margin-top: 12px; text-align: center; font-style: italic; }
+  .panel {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    padding: 26px 28px; margin: 6px 0;
+  }
+  .scroll { overflow-x: auto; }
+  pre {
+    background: var(--code-bg); color: var(--code-ink); border-radius: 6px;
+    padding: 18px 20px; font-family: "IBM Plex Mono", monospace; font-size: 13.5px;
+    line-height: 1.65; overflow-x: auto; margin: 0;
+  }
+  pre .k { color: var(--code-key); }
+  pre .c { color: #7F7768; }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 18px 0 0; font-size: 13.5px; color: var(--soft); }
+  .legend span { display: inline-flex; align-items: center; gap: 8px; }
+  .sw { width: 14px; height: 14px; border-radius: 3px; flex: none; border: 1px solid rgba(0,0,0,.15); }
+  .tbl { width: 100%; border-collapse: collapse; font-size: 14.5px; margin-top: 4px; }
+  .tbl th { text-align: left; font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); font-weight: 600; padding: 8px 12px 8px 0; border-bottom: 2px solid var(--ink); }
+  .tbl td { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .tbl td.mono { font-family: "IBM Plex Mono", monospace; font-size: 12.5px; white-space: nowrap; }
+  .pill { display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
+  .pill.m { color: var(--managed); background: var(--managed-soft); }
+  .pill.c { color: var(--caller); background: var(--caller-soft); }
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">Chapter 2 · The Harness</div>
+  <h1>What we actually built</h1>
+  <p class="lede">The SQL Explainer agent — deployed to AWS, executing tools in the cloud — is <strong>two files and zero Python</strong>. Here is every moving part, and the one place the managed loop hands work back to you.</p>
+
+  <h2>The whole agent, on one screen</h2>
+  <p class="sub">Everything you author. AgentCore turns this declaration into a running Strands agent.</p>
+  <div class="scroll"><figure>
+    <svg viewBox="0 0 900 250" role="img" aria-label="Two files make up the agent: harness.json declaring model, tools, skills and memory, and system-prompt.md holding the instructions.">
+      <!-- file 1 -->
+      <rect x="20" y="30" width="410" height="200" rx="8" fill="var(--panel)" stroke="var(--line)"/>
+      <rect x="20" y="30" width="410" height="34" rx="8" fill="var(--accent-soft)"/>
+      <rect x="20" y="52" width="410" height="12" fill="var(--accent-soft)"/>
+      <text x="40" y="52" font-family="IBM Plex Mono, monospace" font-size="13" font-weight="600" fill="var(--accent)">harness.json</text>
+      <text x="40" y="92" font-family="IBM Plex Mono, monospace" font-size="13" fill="var(--ink)">model  <tspan fill="var(--soft)">→ bedrock · claude-haiku-4.5</tspan></text>
+      <text x="40" y="122" font-family="IBM Plex Mono, monospace" font-size="13" fill="var(--ink)">tools  <tspan fill="var(--soft)">→ [ code_interpreter ]</tspan></text>
+      <text x="40" y="152" font-family="IBM Plex Mono, monospace" font-size="13" fill="var(--ink)">skills <tspan fill="var(--soft)">→ [ ]</tspan></text>
+      <text x="40" y="182" font-family="IBM Plex Mono, monospace" font-size="13" fill="var(--ink)">memory <tspan fill="var(--soft)">→ managed</tspan></text>
+      <text x="40" y="214" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--faint)">+ maxIterations · maxTokens · timeout · auth</text>
+      <!-- file 2 -->
+      <rect x="470" y="30" width="410" height="200" rx="8" fill="var(--panel)" stroke="var(--line)"/>
+      <rect x="470" y="30" width="410" height="34" rx="8" fill="var(--accent-soft)"/>
+      <rect x="470" y="52" width="410" height="12" fill="var(--accent-soft)"/>
+      <text x="490" y="52" font-family="IBM Plex Mono, monospace" font-size="13" font-weight="600" fill="var(--accent)">system-prompt.md</text>
+      <text x="490" y="92" font-family="IBM Plex Sans, sans-serif" font-size="13" fill="var(--soft)">“You are SQL Explainer. You explain</text>
+      <text x="490" y="112" font-family="IBM Plex Sans, sans-serif" font-size="13" fill="var(--soft)">SQL queries in plain English. Use the</text>
+      <text x="490" y="132" font-family="IBM Plex Sans, sans-serif" font-size="13" fill="var(--soft)">code interpreter to run and verify the</text>
+      <text x="490" y="152" font-family="IBM Plex Sans, sans-serif" font-size="13" fill="var(--soft)">query on a sample database…”</text>
+      <text x="490" y="200" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--faint)">the instructions — the agent's behaviour</text>
+    </svg>
+    <figcaption>The complete SQL Explainer. No <code style="font-family:'IBM Plex Mono',monospace">app.py</code>, no graph, no loop code.</figcaption>
+  </figure></div>
+
+  <h2>What AgentCore does with it</h2>
+  <p class="sub">One caller request flows through the managed loop. The colour of each tool says who runs it.</p>
+  <div class="scroll"><figure>
+    <svg viewBox="0 0 900 470" role="img" aria-label="A request enters the managed agent loop, which reasons with the model, calls tools, and repeats until done. Built-in tools like the code interpreter and browser, plus gateway and remote MCP, are executed by the platform. An inline_function tool is handed back to the caller to execute and return.">
+      <defs>
+        <marker id="ah" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto">
+          <polygon points="0,0 9,4 0,8" fill="currentColor"/>
+        </marker>
+        <marker id="ah-c" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto">
+          <polygon points="0,0 9,4 0,8" fill="var(--caller)"/>
+        </marker>
+      </defs>
+
+      <!-- caller -->
+      <rect x="24" y="150" width="120" height="66" rx="8" fill="var(--panel)" stroke="currentColor" stroke-width="1.5"/>
+      <text x="84" y="178" text-anchor="middle" font-family="IBM Plex Sans" font-size="13" font-weight="600" fill="var(--ink)">Caller</text>
+      <text x="84" y="196" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--faint)">invoke_harness</text>
+
+      <!-- managed loop box -->
+      <rect x="220" y="40" width="300" height="290" rx="12" fill="none" stroke="var(--accent)" stroke-width="2"/>
+      <text x="238" y="66" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing=".08em" font-weight="600" fill="var(--accent)">MANAGED LOOP  ·  AWS RUNS THIS</text>
+
+      <!-- model -->
+      <rect x="270" y="90" width="200" height="60" rx="8" fill="var(--panel)" stroke="currentColor" stroke-width="1.5"/>
+      <text x="370" y="115" text-anchor="middle" font-family="IBM Plex Sans" font-size="13" font-weight="600" fill="var(--ink)">Model reasons</text>
+      <text x="370" y="133" text-anchor="middle" font-family="IBM Plex Sans" font-size="11.5" fill="var(--faint)">“which tool do I need?”</text>
+
+      <!-- tool dispatch -->
+      <rect x="270" y="230" width="200" height="56" rx="8" fill="var(--panel)" stroke="currentColor" stroke-width="1.5"/>
+      <text x="370" y="255" text-anchor="middle" font-family="IBM Plex Sans" font-size="13" font-weight="600" fill="var(--ink)">Tool dispatch</text>
+      <text x="370" y="272" text-anchor="middle" font-family="IBM Plex Sans" font-size="11.5" fill="var(--faint)">route the tool call</text>
+
+      <!-- loop arrows -->
+      <line x1="330" y1="150" x2="330" y2="228" stroke="currentColor" marker-end="url(#ah)"/>
+      <line x1="410" y1="230" x2="410" y2="152" stroke="currentColor" marker-end="url(#ah)"/>
+      <text x="300" y="195" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--faint)">calls</text>
+      <text x="420" y="195" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--faint)">result</text>
+
+      <!-- caller to model -->
+      <line x1="144" y1="176" x2="268" y2="128" stroke="currentColor" marker-end="url(#ah)"/>
+      <text x="150" y="140" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--faint)">prompt</text>
+      <!-- model back to caller (final answer) -->
+      <path d="M270 108 Q160 70 150 150" fill="none" stroke="currentColor" stroke-dasharray="4 3" marker-end="url(#ah)"/>
+      <text x="150" y="96" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--faint)">answer</text>
+
+      <!-- platform-run tools -->
+      <rect x="600" y="40" width="276" height="150" rx="8" fill="var(--managed-soft)" stroke="var(--managed)"/>
+      <text x="618" y="64" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" letter-spacing=".05em" fill="var(--managed)">PLATFORM EXECUTES · end-to-end</text>
+      <text x="618" y="90" font-family="IBM Plex Mono, monospace" font-size="12" fill="var(--ink)">◆ code_interpreter <tspan fill="var(--faint)">(built-in)</tspan></text>
+      <text x="618" y="112" font-family="IBM Plex Mono, monospace" font-size="12" fill="var(--ink)">◆ browser <tspan fill="var(--faint)">(built-in)</tspan></text>
+      <text x="618" y="134" font-family="IBM Plex Mono, monospace" font-size="12" fill="var(--ink)">◆ agentcore_gateway <tspan fill="var(--faint)">(your APIs)</tspan></text>
+      <text x="618" y="156" font-family="IBM Plex Mono, monospace" font-size="12" fill="var(--ink)">◆ remote_mcp <tspan fill="var(--faint)">(any MCP URL)</tspan></text>
+      <text x="618" y="178" font-family="IBM Plex Sans" font-size="11" fill="var(--managed)">loop calls, runs, gets result — no exit</text>
+
+      <line x1="470" y1="252" x2="598" y2="150" stroke="var(--managed)" stroke-width="1.5" marker-end="url(#ah)"/>
+
+      <!-- caller-run tool -->
+      <rect x="600" y="228" width="276" height="120" rx="8" fill="var(--caller-soft)" stroke="var(--caller)"/>
+      <text x="618" y="252" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" letter-spacing=".05em" fill="var(--caller)">⚠ HANDED BACK TO CALLER</text>
+      <text x="618" y="278" font-family="IBM Plex Mono, monospace" font-size="12" fill="var(--ink)">◆ inline_function</text>
+      <text x="618" y="300" font-family="IBM Plex Sans" font-size="11.5" fill="var(--soft)">you declare name + schema,</text>
+      <text x="618" y="316" font-family="IBM Plex Sans" font-size="11.5" fill="var(--soft)">but there is nowhere to put the code.</text>
+      <text x="618" y="336" font-family="IBM Plex Sans" font-size="11.5" fill="var(--caller)">loop STOPS · you run it · you return result</text>
+
+      <line x1="470" y1="262" x2="598" y2="300" stroke="var(--caller)" stroke-width="1.5" marker-end="url(#ah-c)"/>
+      <path d="M600 330 Q150 400 84 218" fill="none" stroke="var(--caller)" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#ah-c)"/>
+      <text x="330" y="392" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--caller)">toolResult sent back by caller — then the loop resumes</text>
+    </svg>
+    <figcaption>Built-in, gateway, and MCP tools run inside the loop. An <code style="font-family:'IBM Plex Mono',monospace">inline_function</code> stops the loop and delegates execution to whoever called the harness.</figcaption>
+  </figure></div>
+  <div class="legend">
+    <span><span class="sw" style="background:var(--managed-soft);border-color:var(--managed)"></span> Executed by the managed loop</span>
+    <span><span class="sw" style="background:var(--caller-soft);border-color:var(--caller)"></span> Handed back to the caller</span>
+    <span><span class="sw" style="background:var(--accent);border-color:var(--accent)"></span> The loop AWS runs for you</span>
+  </div>
+
+  <h2>The five tool types</h2>
+  <p class="sub">From <code style="font-family:'IBM Plex Mono',monospace;font-size:.85em">agentcore add tool --type</code>. The last column is the distinction that matters.</p>
+  <div class="panel scroll">
+    <table class="tbl">
+      <tr><th>type</th><th>what it is</th><th>who executes it</th></tr>
+      <tr><td class="mono">agentcore_code_interpreter</td><td>built-in sandboxed code execution</td><td><span class="pill m">managed loop</span></td></tr>
+      <tr><td class="mono">agentcore_browser</td><td>built-in headless browser the agent drives</td><td><span class="pill m">managed loop</span></td></tr>
+      <tr><td class="mono">agentcore_gateway</td><td>your APIs / Lambdas exposed as MCP tools</td><td><span class="pill m">managed loop</span></td></tr>
+      <tr><td class="mono">remote_mcp</td><td>any MCP server, by URL</td><td><span class="pill m">managed loop</span></td></tr>
+      <tr><td class="mono">inline_function</td><td>you declare name + JSON input schema only</td><td><span class="pill c">the caller</span></td></tr>
+    </table>
+  </div>
+
+  <h2>Memory: one knob, three values</h2>
+  <p class="sub">In the Harness, memory is a single field — not the hand-wired checkpointer of the SDK path.</p>
+  <div class="scroll"><figure>
+    <svg viewBox="0 0 900 150" role="img" aria-label="The harness memory field takes managed, existing, or disabled. The value short_term is invalid and silently falls back to disabled.">
+      <rect x="20" y="30" width="270" height="90" rx="8" fill="var(--managed-soft)" stroke="var(--managed)"/>
+      <text x="155" y="60" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="14" font-weight="600" fill="var(--managed)">managed</text>
+      <text x="155" y="84" text-anchor="middle" font-family="IBM Plex Sans" font-size="12" fill="var(--soft)">harness owns memory</text>
+      <text x="155" y="102" text-anchor="middle" font-family="IBM Plex Sans" font-size="12" fill="var(--soft)">internally — “just give me some”</text>
+
+      <rect x="315" y="30" width="270" height="90" rx="8" fill="var(--panel)" stroke="currentColor"/>
+      <text x="450" y="60" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="14" font-weight="600" fill="var(--ink)">existing</text>
+      <text x="450" y="84" text-anchor="middle" font-family="IBM Plex Sans" font-size="12" fill="var(--soft)">point at a memory ARN</text>
+      <text x="450" y="102" text-anchor="middle" font-family="IBM Plex Sans" font-size="12" fill="var(--soft)">+ actorId · retrieval config</text>
+
+      <rect x="610" y="30" width="270" height="90" rx="8" fill="var(--panel)" stroke="currentColor"/>
+      <text x="745" y="60" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="14" font-weight="600" fill="var(--ink)">disabled</text>
+      <text x="745" y="84" text-anchor="middle" font-family="IBM Plex Sans" font-size="12" fill="var(--soft)">no memory</text>
+      <text x="745" y="102" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--caller)">⚠ "short_term" silently lands here</text>
+    </svg>
+    <figcaption>Gotcha we hit: <code style="font-family:'IBM Plex Mono',monospace">"short_term"</code> is not a valid mode — it falls through to <code style="font-family:'IBM Plex Mono',monospace">disabled</code> with no error.</figcaption>
+  </figure></div>
+
+  <h2>The config we shipped</h2>
+  <div class="panel"><pre><code>{
+  <span class="k">"name"</span>: "sql_explainer",
+  <span class="k">"model"</span>:  { <span class="k">"provider"</span>: "bedrock",
+             <span class="k">"modelId"</span>: "us.anthropic.claude-haiku-4-5-20251001-v1:0" },
+  <span class="k">"tools"</span>:  [ { <span class="k">"type"</span>: "agentcore_code_interpreter",
+               <span class="k">"name"</span>: "code_interpreter" } ],
+  <span class="k">"skills"</span>: [],
+  <span class="k">"memory"</span>: { <span class="k">"mode"</span>: "managed" }
+}
+<span class="c">// verified: ran GROUP BY / HAVING on a sample SQLite DB, in the cloud,</span>
+<span class="c">// self-corrected pandas → shell, then explained HAVING-vs-WHERE. Zero Python by us.</span></code></pre></div>
+</div>

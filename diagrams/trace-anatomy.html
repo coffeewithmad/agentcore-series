@@ -1,0 +1,243 @@
+<title>Trace Anatomy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #F5F3EE; --panel: #FBFAF6; --ink: #23201A; --soft: #5C574C;
+    --faint: #8A8375; --line: #D9D3C6;
+    --accent: #B4531F; --accent-soft: #F0E0D3;
+    --managed: #2E6B4F; --managed-soft: #DCEBE1;
+    --mem: #9A6B1F; --mem-soft: #F1E6CE;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #17150F; --panel: #201D16; --ink: #ECE7DA; --soft: #B3AB99;
+      --faint: #857D6C; --line: #34301F; --accent: #E28A57; --accent-soft: #3A251A;
+      --managed: #6FBE92; --managed-soft: #1D2E24; --mem: #D6AB63; --mem-soft: #2E2618;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #17150F; --panel: #201D16; --ink: #ECE7DA; --soft: #B3AB99;
+    --faint: #857D6C; --line: #34301F; --accent: #E28A57; --accent-soft: #3A251A;
+    --managed: #6FBE92; --managed-soft: #1D2E24; --mem: #D6AB63; --mem-soft: #2E2618;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif; line-height: 1.6; font-size: 16px;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 56px 24px 80px; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--accent); font-weight: 600;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 600;
+    font-size: clamp(30px, 5vw, 42px); line-height: 1.08; margin: 8px 0 10px;
+  }
+  .lede { color: var(--soft); font-size: 17px; max-width: 680px; margin: 0 0 8px; }
+  .lede code { font-family: "IBM Plex Mono", monospace; font-size: .82em; background: var(--accent-soft); padding: 1px 6px; border-radius: 3px; }
+  figure { margin: 28px 0 8px; }
+  figure svg { display: block; width: 100%; height: auto; }
+  figcaption { color: var(--faint); font-size: 13.5px; text-align: center; margin-top: 8px; }
+  .spans { margin-top: 36px; }
+  .srow {
+    display: grid; grid-template-columns: 250px 1fr; gap: 4px 22px;
+    padding: 14px 0; border-top: 1px solid var(--line);
+  }
+  .srow:last-of-type { border-bottom: 1px solid var(--line); }
+  @media (max-width: 640px) { .srow { grid-template-columns: 1fr; } }
+  .srow .sname {
+    font-family: "IBM Plex Mono", monospace; font-size: 12px; font-weight: 600;
+    color: var(--ink); padding-top: 2px; word-break: break-word;
+  }
+  .srow .sname i {
+    display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 7px;
+  }
+  .srow p { margin: 0; font-size: 14.5px; color: var(--soft); }
+  .srow p b { color: var(--ink); font-weight: 600; }
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">Chapter 6 · Observability — reading a trace</div>
+  <h1>Trace Anatomy</h1>
+  <p class="lede">
+    One real invoke — session <code>0f1fabd7…</code>, "I'll have the usual" — 19 spans, 2.3 seconds,
+    drawn to scale from the actual telemetry and compressed for reading: the ten repeated memory
+    writes share one row, and each doubled model span is drawn once. The console shows every span
+    as its own bar — more rows, same story.
+  </p>
+
+  <figure>
+    <svg viewBox="0 0 920 300" role="img"
+         aria-label="The hierarchy: a session contains traces, one per invoke; a trace is a tree of spans linked by parent ids, with POST /invocations at the root; each span is one timed step.">
+      <text x="20" y="34" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="2" fill="var(--faint)">SESSION</text>
+      <rect x="20" y="44" width="880" height="236" rx="10" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="40" y="70" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--soft)">0f1fabd7… — the conversation. One box per chat; holds a trace per invoke.</text>
+
+      <text x="40" y="102" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="2" fill="var(--accent)">TRACE</text>
+      <rect x="40" y="112" width="620" height="148" rx="8" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+      <text x="56" y="134" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--soft)">6ac41e9f… — ONE invoke: all 19 spans sharing this traceId, linked into a tree</text>
+
+      <!-- span tree -->
+      <rect x="56" y="150" width="150" height="30" rx="5" fill="var(--accent-soft)" stroke="var(--accent)"/>
+      <text x="131" y="169" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--ink)">POST /invocations</text>
+
+      <line x1="206" y1="165" x2="246" y2="165" stroke="var(--faint)" stroke-width="1.2"/>
+      <line x1="226" y1="165" x2="226" y2="230" stroke="var(--faint)" stroke-width="1.2"/>
+
+      <rect x="246" y="150" width="190" height="30" rx="5" fill="var(--mem-soft)" stroke="var(--mem)"/>
+      <text x="341" y="169" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--ink)">RetrieveMemoryRecords</text>
+
+      <line x1="226" y1="230" x2="246" y2="230" stroke="var(--faint)" stroke-width="1.2"/>
+      <rect x="246" y="215" width="170" height="30" rx="5" fill="none" stroke="var(--ink)" stroke-width="1.2"/>
+      <text x="331" y="234" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--ink)">invoke_agent LangGraph</text>
+
+      <line x1="416" y1="230" x2="456" y2="230" stroke="var(--faint)" stroke-width="1.2"/>
+      <line x1="436" y1="195" x2="436" y2="230" stroke="var(--faint)" stroke-width="1.2"/>
+      <line x1="436" y1="195" x2="456" y2="195" stroke="var(--faint)" stroke-width="1.2"/>
+      <rect x="456" y="180" width="120" height="30" rx="5" fill="var(--managed-soft)" stroke="var(--managed)"/>
+      <text x="516" y="199" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--ink)">chat haiku ×2</text>
+      <rect x="456" y="215" width="120" height="30" rx="5" fill="var(--accent-soft)" stroke="var(--accent)"/>
+      <text x="516" y="234" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--ink)">make_drink</text>
+
+      <text x="56" y="252" font-size="0" fill="var(--faint)"> </text>
+
+      <text x="690" y="134" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="2" fill="var(--managed)">SPAN</text>
+      <rect x="690" y="144" width="190" height="96" rx="8" fill="var(--managed-soft)"/>
+      <text x="704" y="166" font-size="11" font-weight="600" fill="var(--ink)">one timed step</text>
+      <text x="704" y="185" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="var(--soft)">name · start · duration</text>
+      <text x="704" y="201" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="var(--soft)">parentSpanId → its tree link</text>
+      <text x="704" y="217" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="var(--soft)">attributes: tokens, model…</text>
+      <text x="704" y="233" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="var(--soft)">every bar below = one span</text>
+    </svg>
+    <figcaption>
+      The hierarchy: a session holds one trace per invoke; a trace is the tree of all spans sharing
+      one traceId; a span is one timed step. The waterfall below is this same tree, laid on a clock.
+    </figcaption>
+  </figure>
+
+  <figure>
+    <svg viewBox="0 0 920 470" role="img"
+         aria-label="Waterfall of one barista invocation, 2.3 seconds total: the POST /invocations root span contains a memory retrieval (350ms), then the LangGraph agent run (1.8s) containing the tape restore, a first model turn (750ms) that decides to call the tool, the make_drink tool (1ms), a second model turn (869ms) that produces the reply, with ten small CreateEvent memory writes scattered throughout.">
+      <!-- time axis -->
+      <line x1="120" y1="36" x2="880" y2="36" stroke="var(--line)"/>
+      <text x="120" y="26" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--faint)">0ms</text>
+      <text x="452" y="26" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--faint)">1000ms</text>
+      <text x="784" y="26" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--faint)">2000ms</text>
+      <line x1="452" y1="30" x2="452" y2="460" stroke="var(--line)" stroke-dasharray="2 4"/>
+      <line x1="784" y1="30" x2="784" y2="460" stroke="var(--line)" stroke-dasharray="2 4"/>
+
+      <!-- row 1: root -->
+      <text x="112" y="62" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--ink)">POST /invocations</text>
+      <rect x="120" y="50" width="760" height="18" rx="3" fill="var(--accent-soft)" stroke="var(--accent)"/>
+      <text x="126" y="63" font-size="10" fill="var(--ink)">the whole request · 2,287ms</text>
+
+      <!-- row 2: memory read -->
+      <text x="112" y="104" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--mem)">RetrieveMemoryRecords</text>
+      <rect x="146" y="92" width="116" height="18" rx="3" fill="var(--mem-soft)" stroke="var(--mem)"/>
+      <text x="268" y="105" font-size="10" fill="var(--soft)">reading the customer's notes · 350ms</text>
+
+      <!-- row 3: graph -->
+      <text x="112" y="146" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--ink)">invoke_agent LangGraph</text>
+      <rect x="264" y="134" width="588" height="18" rx="3" fill="var(--panel)" stroke="var(--ink)" stroke-width="1.2"/>
+      <text x="270" y="147" font-size="10" fill="var(--ink)">your graph, end to end · 1,771ms</text>
+
+      <!-- row 4: tape restore -->
+      <text x="112" y="188" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--mem)">ListEvents</text>
+      <rect x="264" y="176" width="15" height="18" rx="3" fill="var(--mem-soft)" stroke="var(--mem)"/>
+      <text x="286" y="189" font-size="10" fill="var(--soft)">checkpointer restores the tape · 44ms</text>
+
+      <!-- row 5: model turn 1 -->
+      <text x="112" y="230" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--managed)">chat claude-haiku #1</text>
+      <rect x="281" y="218" width="249" height="18" rx="3" fill="var(--managed-soft)" stroke="var(--managed)"/>
+      <text x="536" y="231" font-size="10" fill="var(--soft)">model reads prompt + usual → decides to call the tool · 750ms · 630 in / 56 out</text>
+
+      <!-- row 6: tool -->
+      <text x="112" y="272" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--ink)">execute_tool make_drink</text>
+      <rect x="532" y="260" width="6" height="18" rx="2" fill="var(--accent)"/>
+      <text x="546" y="273" font-size="10" fill="var(--soft)">the tool itself · 1ms (it's a stub — real backends show real time here)</text>
+
+      <!-- row 7: model turn 2 -->
+      <text x="112" y="314" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--managed)">chat claude-haiku #2</text>
+      <rect x="533" y="302" width="289" height="18" rx="3" fill="var(--managed-soft)" stroke="var(--managed)"/>
+      <text x="536" y="330" font-size="10" fill="var(--soft)">model sees the tool result → writes the reply · 869ms · 710 in / 32 out</text>
+
+      <!-- row 8: create events -->
+      <text x="112" y="368" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--mem)">CreateEvent ×10</text>
+      <g fill="var(--mem-soft)" stroke="var(--mem)">
+        <rect x="279" y="356" width="10" height="18" rx="2"/>
+        <rect x="280" y="356" width="12" height="18" rx="2"/>
+        <rect x="310" y="356" width="9" height="18" rx="2"/>
+        <rect x="531" y="356" width="9" height="18" rx="2"/>
+        <rect x="532" y="356" width="10" height="18" rx="2"/>
+        <rect x="533" y="356" width="12" height="18" rx="2"/>
+        <rect x="560" y="356" width="9" height="18" rx="2"/>
+        <rect x="822" y="356" width="10" height="18" rx="2"/>
+        <rect x="823" y="356" width="9" height="18" rx="2"/>
+        <rect x="852" y="356" width="9" height="18" rx="2"/>
+      </g>
+      <text x="126" y="394" font-size="10" fill="var(--soft)">the tape being written — checkpointer saves after each step, plus the transcript write at the end · ~80–135ms each</text>
+
+      <!-- summary strip -->
+      <text x="120" y="434" font-size="11.5" fill="var(--ink)" font-weight="600">Where the 2.3 seconds went:</text>
+      <text x="120" y="454" font-size="11" fill="var(--soft)">model thinking 1.6s (70%) · memory read 0.35s · tape writes overlap everything · the tool: 1ms</text>
+    </svg>
+    <figcaption>
+      Drawn to scale from the session's real spans. Colors: terracotta = request/tool ·
+      green = model · amber = memory. Indentation in the console = the parent–child nesting shown here.
+    </figcaption>
+  </figure>
+
+  <div class="spans">
+    <div class="srow">
+      <div class="sname"><i style="background:var(--accent-soft);border:1px solid var(--accent)"></i>POST /invocations</div>
+      <p><b>The front door — and the root span.</b> The SDK's HTTP server receiving the request.
+         Every other span is its descendant; its duration (2,287ms) is what the caller experienced.
+         When the dashboard shows "a trace," this is the top of it.</p>
+    </div>
+    <div class="srow">
+      <div class="sname"><i style="background:var(--mem-soft);border:1px solid var(--mem)"></i>Bedrock AgentCore.RetrieveMemoryRecords</div>
+      <p><b>Long-term memory being read</b> — this is <b>load_usual</b> searching the customer's
+         namespace for their distilled notes. 350ms, before the graph even starts. If "the usual"
+         ever stops working, this span is the first place to look.</p>
+    </div>
+    <div class="srow">
+      <div class="sname"><i style="border:1.2px solid var(--ink)"></i>invoke_agent LangGraph</div>
+      <p><b>Your graph, as one span.</b> The framework instrumentation wraps the whole
+         <b>graph.invoke()</b> call — everything your agent "did" nests inside this bar. Its name
+         is literally your framework's.</p>
+    </div>
+    <div class="srow">
+      <div class="sname"><i style="background:var(--mem-soft);border:1px solid var(--mem)"></i>Bedrock AgentCore.ListEvents</div>
+      <p><b>The tape being restored.</b> First thing inside the graph: the checkpointer asks memory
+         for this thread's prior state. 44ms. New session, so it comes back nearly empty.</p>
+    </div>
+    <div class="srow">
+      <div class="sname"><i style="background:var(--managed-soft);border:1px solid var(--managed)"></i>chat claude-haiku (two of them)</div>
+      <p><b>The model turns — where the time and money go.</b> Turn one (750ms, 630 tokens in / 56
+         out): the model reads the prompt plus the injected usual and decides to call the tool.
+         Turn two (869ms, 710 in / 32 out): it sees the tool result and writes the reply. Token
+         counts on these spans are the cost of the call, per turn.</p>
+    </div>
+    <div class="srow">
+      <div class="sname"><i style="background:var(--accent)"></i>execute_tool make_drink</div>
+      <p><b>The tool itself.</b> One millisecond — because ours is a stub returning a string. With
+         a real backend this bar is where your API's latency shows up, separated from the model's.</p>
+    </div>
+    <div class="srow">
+      <div class="sname"><i style="background:var(--mem-soft);border:1px solid var(--mem)"></i>Bedrock AgentCore.CreateEvent ×10</div>
+      <p><b>The tape being written.</b> The checkpointer persists state after each step of the
+         graph — that's most of these — plus <b>log_exchange</b> writing the transcript for the
+         distiller at the end. Ten small writes, ~80–135ms each, overlapping the run. Chatty by
+         design: that's what durable conversation state costs.</p>
+    </div>
+    <div class="srow">
+      <div class="sname"><i style="border:1px dashed var(--faint)"></i>Why some chat spans appear doubled</div>
+      <p>Two instrumentation layers both record the model call: the framework layer (LangChain's
+         view of the turn) wrapping the botocore layer (the raw Bedrock API call). Nested,
+         near-identical duration — not a double charge, just two witnesses to one event. Normal;
+         read the outer one.</p>
+    </div>
+  </div>
+</div>
